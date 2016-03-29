@@ -2,4 +2,20 @@
     <string name="app_name">Popular Movies</string>
     <string name="movies_api_base_url">http://api.themoviedb.org/3/movie</string>
     <string name="movies_poster_base_url">http://image.tmdb.org/t/p/w500</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+    <string name="pref_header_general">General</string>
+
+    <string name="pref_title_sort_order">Sort Order</string>
+    <string name="pref_key_sort_order">sort_order_list</string>
+    <string name="pref_default_value_sort_order">popular</string>
+    <string-array name="pref_sort_order_list_titles">
+        <item>Popular</item>
+        <item>Top rated</item>
+    </string-array>
+    <string-array name="pref_sort_order_list_values">
+        <item>popular</item>
+        <item>top_rated</item>
+    </string-array>
 </resources>

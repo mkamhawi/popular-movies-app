@@ -1,11 +1,17 @@
 package com.tutorial.nano.popularmovies;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -29,6 +35,7 @@ public class FragmentMain extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -41,10 +48,27 @@ public class FragmentMain extends Fragment {
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.fragmentmain, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            startActivity(new Intent(getActivity(), SettingsActivity.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onStart() {
         super.onStart();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortOrder = prefs.getString(getString(R.string.pref_key_sort_order), getString(R.string.pref_default_value_sort_order));
         FetchMoviesTask moviesTask = new FetchMoviesTask();
-        moviesTask.execute();
+        moviesTask.execute(sortOrder);
     }
 
     public class FetchMoviesTask extends AsyncTask<String, Void, Movie[]> {
@@ -81,6 +105,10 @@ public class FragmentMain extends Fragment {
 
         @Override
         protected Movie[] doInBackground(String... params) {
+            if (params.length == 0) {
+                return null;
+            }
+
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
@@ -88,7 +116,7 @@ public class FragmentMain extends Fragment {
 
             try {
                 final String BASE_URL = getString(R.string.movies_api_base_url);
-                final String SORT_ORDER = "popular";
+                final String SORT_ORDER = params[0];
                 final String API_KEY_PARAM = "api_key";
 
                 Uri finalUri = Uri.parse(BASE_URL).buildUpon()
