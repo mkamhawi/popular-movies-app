@@ -14,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 
@@ -44,6 +45,16 @@ public class FragmentMain extends Fragment {
         mImageAdapter = new ImageAdapter(getContext(), R.id.movies_grid_item);
         GridView moviesGrid = (GridView) rootView.findViewById(R.id.movies_grid);
         moviesGrid.setAdapter(mImageAdapter);
+        moviesGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Movie movie = mImageAdapter.getItem(position);
+                Intent details = new Intent(getActivity(), MovieDetailActivity.class)
+                        .putExtra("Movie", movie);
+                startActivity(details);
+            }
+        });
         return rootView;
     }
 
@@ -89,11 +100,13 @@ public class FragmentMain extends Fragment {
             Movie[] result = new Movie[numberOfMovies];
             for (int i = 0; i < movieJsonArray.length(); i++) {
                 JSONObject movieJsonObject = movieJsonArray.getJSONObject(i);
+                String posterUrl = getContext().getString(R.string.movies_poster_base_url)
+                        + movieJsonObject.getString(POSTER_PATH_KEY);
 
                 result[i] = new Movie(
                         movieJsonObject.getInt(ID_KEY),
                         movieJsonObject.getString(TITLE_KEY),
-                        movieJsonObject.getString(POSTER_PATH_KEY),
+                        posterUrl,
                         movieJsonObject.getString(PLOT_KEY),
                         movieJsonObject.getString(RELEASE_DATE_KEY),
                         movieJsonObject.getDouble(VOTE_AVERAGE_KEY)
@@ -174,7 +187,6 @@ public class FragmentMain extends Fragment {
         @Override
         protected void onPostExecute(Movie[] movies) {
             if (movies != null) {
-//                mImageAdapter = new ImageAdapter(getContext(), R.id.movies_grid_item, movies);
                 mImageAdapter.clear();
                 mImageAdapter.addAll(movies);
             }
