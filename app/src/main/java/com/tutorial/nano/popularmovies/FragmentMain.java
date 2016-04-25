@@ -67,8 +67,6 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
                 .getString(getString(R.string.pref_key_sort_order), getString(R.string.pref_default_value_sort_order));
         FetchMoviesTask moviesTask = new FetchMoviesTask(getActivity());
         moviesTask.execute(sortOrder);
-
-        getLoaderManager().restartLoader(MOVIES_LOADER, null, this);
     }
 
     @Override
@@ -87,6 +85,9 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if (data.getCount() == 0) {
+            updateMovieList();
+        }
         mMoviesCursorAdapter.swapCursor(data);
     }
 
