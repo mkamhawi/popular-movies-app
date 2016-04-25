@@ -11,6 +11,7 @@
     tools:context="com.tutorial.nano.popularmovies.MainActivity">
 
     <fragment
+        android:id="@+id/fragment_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:name="com.tutorial.nano.popularmovies.FragmentMain" />

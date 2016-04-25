@@ -1,13 +1,57 @@
 package com.tutorial.nano.popularmovies;
 
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
 
+    private String mSortOrder;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mSortOrder = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getString(getString(R.string.pref_key_sort_order), getString(R.string.pref_default_value_sort_order));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.fragmentmain, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        }
+        if(id == R.id.action_refresh) {
+            ((FragmentMain) getSupportFragmentManager().findFragmentById(R.id.fragment_main)).updateMovieList();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String sortOrder = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getString(getString(R.string.pref_key_sort_order), getString(R.string.pref_default_value_sort_order));
+        if(sortOrder != null && !sortOrder.equals(mSortOrder)) {
+            FragmentMain fragmentMain = (FragmentMain) getSupportFragmentManager().findFragmentById(R.id.fragment_main);
+            if(fragmentMain != null) {
+                fragmentMain.updateMovieList();
+            }
+            mSortOrder = sortOrder;
+        }
     }
 }
