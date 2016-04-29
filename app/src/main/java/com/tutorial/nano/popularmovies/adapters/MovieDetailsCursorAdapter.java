@@ -1,4 +1,4 @@
-package com.tutorial.nano.popularmovies;
+package com.tutorial.nano.popularmovies.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -7,6 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.TextView;
+
+import com.tutorial.nano.popularmovies.fragments.MovieDetailFragment;
+import com.tutorial.nano.popularmovies.R;
 
 public class MovieDetailsCursorAdapter extends CursorAdapter {
 

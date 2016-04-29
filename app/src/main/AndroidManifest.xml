@@ -10,7 +10,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -18,12 +18,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SettingsActivity"
+            android:name=".activities.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".MainActivity" />
-        <activity android:name=".MovieDetailActivity" />
-        <activity android:name=".MovieReviewsActivity" />
-        <activity android:name=".SingleReviewActivity" />
+            android:parentActivityName=".activities.MainActivity" />
+        <activity android:name=".activities.MovieDetailActivity" />
+        <activity android:name=".activities.MovieReviewsActivity" />
+        <activity android:name=".activities.SingleReviewActivity" />
         <provider
             android:authorities="com.tutorial.nano.popularmovies"
             android:name=".data.MoviesProvider" />

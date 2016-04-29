@@ -1,4 +1,4 @@
-package com.tutorial.nano.popularmovies;
+package com.tutorial.nano.popularmovies.fragments;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -14,7 +14,11 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
+import com.tutorial.nano.popularmovies.activities.MovieDetailActivity;
+import com.tutorial.nano.popularmovies.R;
+import com.tutorial.nano.popularmovies.adapters.MoviesCursorAdapter;
 import com.tutorial.nano.popularmovies.data.MoviesContract;
+import com.tutorial.nano.popularmovies.tasks.FetchMoviesTask;
 
 public class FragmentMain extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -30,7 +34,7 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
 
     static final int COL_ID = 0;
     static final int COL_MOVIE_ID = 1;
-    static final int COL_POSTER_URL_ID = 2;
+    public static final int COL_POSTER_URL_ID = 2;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

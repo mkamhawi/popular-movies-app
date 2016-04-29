@@ -1,7 +1,9 @@
-package com.tutorial.nano.popularmovies;
+package com.tutorial.nano.popularmovies.activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
+import com.tutorial.nano.popularmovies.R;
 
 public class MovieDetailActivity extends AppCompatActivity {
 

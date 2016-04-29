@@ -1,4 +1,4 @@
-package com.tutorial.nano.popularmovies;
+package com.tutorial.nano.popularmovies.fragments;
 
 
 import android.content.Intent;
@@ -18,7 +18,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+import com.tutorial.nano.popularmovies.activities.MovieReviewsActivity;
+import com.tutorial.nano.popularmovies.R;
+import com.tutorial.nano.popularmovies.adapters.MovieDetailsCursorAdapter;
 import com.tutorial.nano.popularmovies.data.MoviesContract;
+import com.tutorial.nano.popularmovies.tasks.FetchExtraMovieDetailsTask;
 
 public class MovieDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -54,7 +58,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     };
 
     static final int COL_TRAILER_ID_INDEX = 0;
-    static final int COL_TRAILER_NAME_INDEX = 1;
+    public static final int COL_TRAILER_NAME_INDEX = 1;
     static final int COL_TRAILER_SOURCE_INDEX = 2;
 
 

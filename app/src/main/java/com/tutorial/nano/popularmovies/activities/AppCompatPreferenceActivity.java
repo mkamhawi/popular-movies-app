@@ -1,4 +1,4 @@
-package com.tutorial.nano.popularmovies;
+package com.tutorial.nano.popularmovies.activities;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

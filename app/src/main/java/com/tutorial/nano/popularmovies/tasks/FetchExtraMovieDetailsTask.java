@@ -1,4 +1,4 @@
-package com.tutorial.nano.popularmovies;
+package com.tutorial.nano.popularmovies.tasks;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.tutorial.nano.popularmovies.BuildConfig;
+import com.tutorial.nano.popularmovies.R;
 import com.tutorial.nano.popularmovies.data.MoviesContract;
 
 import org.json.JSONArray;

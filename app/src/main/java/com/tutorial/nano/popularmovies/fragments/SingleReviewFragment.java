@@ -1,4 +1,4 @@
-package com.tutorial.nano.popularmovies;
+package com.tutorial.nano.popularmovies.fragments;
 
 
 import android.content.Intent;
@@ -12,17 +12,14 @@ import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.TextView;
 
+import com.tutorial.nano.popularmovies.R;
 import com.tutorial.nano.popularmovies.data.MoviesContract;
 
-public class MovieReviewsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class SingleReviewFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private static final int REVIEWS_LOADER = 0;
-
-    private MovieReviewsCursorAdapter mMovieReviewsCursorAdapter;
+    private static final int REVIEW_LOADER = 0;
 
     private static final String[] REVIEWS_PROJECTION = {
             MoviesContract.ReviewEntry.TABLE_NAME + "." + MoviesContract.ReviewEntry._ID,
@@ -41,32 +38,12 @@ public class MovieReviewsFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_movie_reviews, container, false);
-
-        ListView reviewsList = (ListView) rootView.findViewById(R.id.movie_reviews_list);
-        mMovieReviewsCursorAdapter = new MovieReviewsCursorAdapter(getContext(), null, 0);
-        reviewsList.setAdapter(mMovieReviewsCursorAdapter);
-        TextView emptyView = (TextView) rootView.findViewById(R.id.no_reviews_message);
-        reviewsList.setEmptyView(emptyView);
-        reviewsList.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Cursor item = (Cursor) parent.getItemAtPosition(position);
-                if (item == null) {
-                    return;
-                }
-                Intent intent = new Intent(getContext(), SingleReviewActivity.class)
-                        .putExtra("reviewEntryId", item.getLong(COL_REVIEW_ID_INDEX));
-                startActivity(intent);
-            }
-        });
-        return rootView;
+        return inflater.inflate(R.layout.fragment_single_review, container, false);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        getLoaderManager().initLoader(REVIEWS_LOADER, null, this);
+        getLoaderManager().initLoader(REVIEW_LOADER, null, this);
         super.onActivityCreated(savedInstanceState);
     }
 
@@ -77,17 +54,16 @@ public class MovieReviewsFragment extends Fragment implements LoaderManager.Load
             return null;
         }
 
-        long movieId = intent.getExtras().getLong("movieId");
-        if (id == REVIEWS_LOADER) {
-            Uri movieReviewsUri = MoviesContract.ReviewEntry.buildAllMovieReviewsUri(Long.toString(movieId));
-            String sortOrder = MoviesContract.ReviewEntry._ID + " ASC";
+        long reviewEntryId = intent.getExtras().getLong("reviewEntryId");
+        if (id == REVIEW_LOADER) {
+            Uri movieReviewsUri = MoviesContract.ReviewEntry.buildMovieReviewUri(reviewEntryId);
             return new CursorLoader(
                     getContext(),
                     movieReviewsUri,
                     REVIEWS_PROJECTION,
                     null,
                     null,
-                    sortOrder
+                    null
             );
         }
 
@@ -98,13 +74,16 @@ public class MovieReviewsFragment extends Fragment implements LoaderManager.Load
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         int loaderId = loader.getId();
 
-        if (loaderId == REVIEWS_LOADER) {
-            mMovieReviewsCursorAdapter.swapCursor(data);
+        if (loaderId == REVIEW_LOADER && data.moveToFirst()) {
+            TextView authorName = (TextView) getView().findViewById(R.id.review_author_name);
+            authorName.setText(data.getString(COL_REVIEW_AUTHOR_INDEX));
+            TextView reviewContent = (TextView) getView().findViewById(R.id.review_content);
+            reviewContent.setText(data.getString(COL_REVIEW_CONTENT_INDEX));
         }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mMovieReviewsCursorAdapter.swapCursor(null);
+
     }
 }

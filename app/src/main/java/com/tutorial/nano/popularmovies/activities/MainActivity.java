@@ -1,4 +1,4 @@
-package com.tutorial.nano.popularmovies;
+package com.tutorial.nano.popularmovies.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,6 +6,9 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.tutorial.nano.popularmovies.R;
+import com.tutorial.nano.popularmovies.fragments.FragmentMain;
 
 public class MainActivity extends AppCompatActivity {
 

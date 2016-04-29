@@ -1,4 +1,4 @@
-package com.tutorial.nano.popularmovies;
+package com.tutorial.nano.popularmovies.activities;
 
 
 import android.annotation.TargetApi;
@@ -13,6 +13,8 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
+
+import com.tutorial.nano.popularmovies.R;
 
 import java.util.List;
 
