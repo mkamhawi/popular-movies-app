@@ -24,11 +24,13 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
 
     private static final String[] MOVIE_COLS = {
             MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry._ID,
+            MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry.COLUMN_MOVIE_ID,
             MoviesContract.MovieEntry.COLUMN_POSTER_URL
     };
 
     static final int COL_ID = 0;
-    static final int COL_POSTER_URL_ID = 1;
+    static final int COL_MOVIE_ID = 1;
+    static final int COL_POSTER_URL_ID = 2;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,8 +49,10 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Cursor movie = (Cursor) parent.getItemAtPosition(position);
+                String movieEntryUri = MoviesContract.MovieEntry.buildMovieUri(movie.getLong(COL_ID)).toString();
                 Intent details = new Intent(getActivity(), MovieDetailActivity.class)
-                        .putExtra("movieEntryId", movie.getLong(COL_ID));
+                        .putExtra("movieEntryUri", movieEntryUri)
+                        .putExtra("movieId", movie.getLong(COL_MOVIE_ID));
                 startActivity(details);
             }
         });
@@ -85,7 +89,7 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (data.getCount() == 0) {
+        if (!data.moveToFirst()) {
             updateMovieList();
         }
         mMoviesCursorAdapter.swapCursor(data);

@@ -21,7 +21,9 @@
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".MainActivity" />
-        <activity android:name=".MovieDetailActivity"></activity>
+        <activity android:name=".MovieDetailActivity" />
+        <activity android:name=".MovieReviewsActivity" />
+        <activity android:name=".SingleReviewActivity" />
         <provider
             android:authorities="com.tutorial.nano.popularmovies"
             android:name=".data.MoviesProvider" />

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/small_padding"
+    android:paddingLeft="@dimen/small_padding"
+    android:paddingRight="@dimen/small_padding"
+    android:paddingTop="@dimen/small_padding" >
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="@dimen/small_padding"
+        android:text="@dimen/title_text_size"
+        android:id="@+id/review_author_name" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/review_content"
+        android:textSize="@dimen/paragraph_text_size"
+        android:paddingLeft="@dimen/small_padding"
+        android:paddingRight="@dimen/small_padding"
+        android:maxLength="@string/review_list_item_max_length"
+        android:ellipsize="end" />
+</LinearLayout>
