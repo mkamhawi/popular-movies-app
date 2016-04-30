@@ -41,13 +41,15 @@ android:orientation="vertical" >
                 android:id="@+id/movie_detail_release_date"
                 android:textSize="@dimen/subtitle_text_size" />
 
-            <TextView
+            <RatingBar
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/small_margin"
                 android:layout_weight="1"
-                android:id="@+id/movie_detail_vote_average"
-                android:textSize="@dimen/subtitle_text_size" />
+                style="?android:attr/ratingBarStyleSmall"
+                android:numStars="5"
+                android:stepSize="0.1"
+                android:id="@+id/movie_detail_vote_average" />
 
             <ImageButton
                 android:layout_width="@dimen/favorite_button_width"

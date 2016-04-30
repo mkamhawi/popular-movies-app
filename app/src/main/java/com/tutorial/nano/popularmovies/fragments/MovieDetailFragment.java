@@ -18,6 +18,7 @@ import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -286,7 +287,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         public final ImageView poster;
         public final TextView plotTextView;
         public final TextView releaseDateTextView;
-        public final TextView voteAverageTextView;
+        public final RatingBar voteAverageRatingBar;
         public final ImageButton favoriteButton;
 
         public String title;
@@ -295,7 +296,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         public String releaseDate;
         public Double voteAverage;
 
-        public void setValues(String title, String posterUrl, String plot, String releaseDate, Double voteAverage) {
+        public void setValues(String title, String posterUrl, String plot, String releaseDate, double voteAverage) {
             this.title = title;
             titleTextView.setText(title);
 
@@ -306,7 +307,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             this.releaseDate = releaseDate;
             releaseDateTextView.setText(releaseDate);
             this.voteAverage = voteAverage;
-            voteAverageTextView.setText(Double.toString(voteAverage) + "/10");
+            voteAverageRatingBar.setRating((float) voteAverage * 5/10);
         }
 
         public HeaderViewHolder(View view){
@@ -314,7 +315,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             poster = (ImageView) view.findViewById(R.id.movie_detail_poster);
             plotTextView = (TextView) view.findViewById(R.id.movie_detail_plot);
             releaseDateTextView = (TextView) view.findViewById(R.id.movie_detail_release_date);
-            voteAverageTextView = (TextView) view.findViewById(R.id.movie_detail_vote_average);
+            voteAverageRatingBar = (RatingBar) view.findViewById(R.id.movie_detail_vote_average);
             favoriteButton = (ImageButton) view.findViewById(R.id.favorite_button);
         }
     }
