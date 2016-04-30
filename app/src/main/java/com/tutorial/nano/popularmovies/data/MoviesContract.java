@@ -72,6 +72,14 @@ public class MoviesContract {
         public static String getEntryIdFromUri(Uri uri) {
             return uri.getPathSegments().get(1);
         }
+
+        public static Uri buildFavoriteWithMovieIdUri(String movieId) {
+            return CONTENT_URI.buildUpon().appendPath(COLUMN_MOVIE_ID).appendPath(movieId).build();
+        }
+
+        public static String getMovieIdFromUri(Uri uri) {
+            return uri.getPathSegments().get(2);
+        }
     }
 
     public static final class TrailerEntry implements BaseColumns {

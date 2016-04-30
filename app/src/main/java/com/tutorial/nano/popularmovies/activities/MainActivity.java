@@ -12,11 +12,11 @@ import com.tutorial.nano.popularmovies.fragments.FragmentMain;
 
 public class MainActivity extends AppCompatActivity {
 
-    private String mSortOrder;
+    private String moviesCategory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        mSortOrder = PreferenceManager
+        moviesCategory = PreferenceManager
                 .getDefaultSharedPreferences(this)
                 .getString(getString(R.string.pref_key_sort_order), getString(R.string.pref_default_value_sort_order));
         super.onCreate(savedInstanceState);
@@ -46,15 +46,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        String sortOrder = PreferenceManager
+        String category = PreferenceManager
                 .getDefaultSharedPreferences(this)
                 .getString(getString(R.string.pref_key_sort_order), getString(R.string.pref_default_value_sort_order));
-        if(sortOrder != null && !sortOrder.equals(mSortOrder)) {
+        if(!category.equals(moviesCategory)) {
             FragmentMain fragmentMain = (FragmentMain) getSupportFragmentManager().findFragmentById(R.id.fragment_main);
             if(fragmentMain != null) {
                 fragmentMain.updateMovieList();
             }
-            mSortOrder = sortOrder;
+            moviesCategory = category;
         }
     }
 }

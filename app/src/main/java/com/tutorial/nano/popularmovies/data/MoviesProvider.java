@@ -17,6 +17,7 @@ public class MoviesProvider extends ContentProvider {
     static final int MOVIE_WITH_ID = 101;
     static final int FAVORITES = 200;
     static final int FAVORITE_WITH_ID = 201;
+    static final int FAVORITE_WITH_MOVIE_ID = 202;
     static final int TRAILERS_WITH_MOVIE_ID = 300;
     static final int TRAILER_WITH_ID = 301;
     static final int REVIEWS_WITH_MOVIE_ID = 400;
@@ -92,6 +93,24 @@ public class MoviesProvider extends ContentProvider {
                         null,
                         null,
                         null
+                );
+                break;
+            }
+            case FAVORITE_WITH_MOVIE_ID: {
+                String movieId = MoviesContract.FavoriteEntry.getMovieIdFromUri(uri);
+                String selectionStr = MoviesContract.FavoriteEntry.TABLE_NAME
+                        + "."
+                        + MoviesContract.FavoriteEntry.COLUMN_MOVIE_ID
+                        + " = ? ";
+                String[] selectionArguments = {movieId};
+                resultCursor = db.query(
+                        MoviesContract.FavoriteEntry.TABLE_NAME,
+                        projection,
+                        selectionStr,
+                        selectionArguments,
+                        null,
+                        null,
+                        sortOrder
                 );
                 break;
             }
@@ -186,6 +205,8 @@ public class MoviesProvider extends ContentProvider {
             case FAVORITES:
                 return MoviesContract.FavoriteEntry.CONTENT_TYPE;
             case FAVORITE_WITH_ID:
+                return MoviesContract.FavoriteEntry.CONTENT_ITEM_TYPE;
+            case FAVORITE_WITH_MOVIE_ID:
                 return MoviesContract.FavoriteEntry.CONTENT_ITEM_TYPE;
             case TRAILERS_WITH_MOVIE_ID:
                 return MoviesContract.TrailerEntry.CONTENT_TYPE;
@@ -334,6 +355,16 @@ public class MoviesProvider extends ContentProvider {
                 rowsDeleted = db.delete(MoviesContract.FavoriteEntry.TABLE_NAME, selectionStr, selectionArguments);
                 break;
             }
+            case FAVORITE_WITH_MOVIE_ID: {
+                String movieId = MoviesContract.FavoriteEntry.getMovieIdFromUri(uri);
+                String selectionStr = MoviesContract.FavoriteEntry.TABLE_NAME
+                        + "."
+                        + MoviesContract.FavoriteEntry.COLUMN_MOVIE_ID
+                        + " = ? ";
+                String[] selectionArguments = {movieId};
+                rowsDeleted = db.delete(MoviesContract.FavoriteEntry.TABLE_NAME, selectionStr, selectionArguments);
+                break;
+            }
             case TRAILER_WITH_ID: {
                 String entryId = MoviesContract.TrailerEntry.getEntryIdFromUri(uri);
                 String selectionStr = MoviesContract.TrailerEntry.TABLE_NAME
@@ -419,6 +450,7 @@ public class MoviesProvider extends ContentProvider {
 
         matcher.addURI(authority, MoviesContract.PATH_FAVORITES, FAVORITES);
         matcher.addURI(authority, MoviesContract.PATH_FAVORITES + "/#", FAVORITE_WITH_ID);
+        matcher.addURI(authority, MoviesContract.PATH_FAVORITES + "/movie_id/*", FAVORITE_WITH_MOVIE_ID);
 
         matcher.addURI(authority, MoviesContract.PATH_TRAILERS + "/movie_id/*", TRAILERS_WITH_MOVIE_ID);
         matcher.addURI(authority, MoviesContract.PATH_TRAILERS + "/#", TRAILER_WITH_ID);

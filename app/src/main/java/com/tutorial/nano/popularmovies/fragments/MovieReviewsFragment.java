@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.tutorial.nano.popularmovies.R;
 import com.tutorial.nano.popularmovies.activities.SingleReviewActivity;
@@ -49,8 +48,7 @@ public class MovieReviewsFragment extends Fragment implements LoaderManager.Load
         ListView reviewsList = (ListView) rootView.findViewById(R.id.movie_reviews_list);
         mMovieReviewsCursorAdapter = new MovieReviewsCursorAdapter(getContext(), null, 0);
         reviewsList.setAdapter(mMovieReviewsCursorAdapter);
-        TextView emptyView = (TextView) rootView.findViewById(R.id.no_reviews_message);
-        reviewsList.setEmptyView(emptyView);
+        reviewsList.setEmptyView(rootView.findViewById(R.id.no_reviews_message));
         reviewsList.setOnItemClickListener(new AdapterView.OnItemClickListener(){
 
             @Override
