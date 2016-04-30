@@ -1,6 +1,5 @@
 package com.tutorial.nano.popularmovies.fragments;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -15,7 +14,6 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.tutorial.nano.popularmovies.R;
-import com.tutorial.nano.popularmovies.activities.MovieDetailActivity;
 import com.tutorial.nano.popularmovies.adapters.MoviesCursorAdapter;
 import com.tutorial.nano.popularmovies.data.MoviesContract;
 import com.tutorial.nano.popularmovies.tasks.FetchMoviesTask;
@@ -47,6 +45,10 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
     static final int FAVORITE_COL_MOVIE_ID = 1;
     public static final int FAVORITE_COL_POSTER_URL_ID = 2;
 
+    public interface Callback {
+        public void onItemSelected(long entryId, long movieId);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,10 +67,10 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Cursor movie = (Cursor) parent.getItemAtPosition(position);
-                Intent details = new Intent(getActivity(), MovieDetailActivity.class)
-                        .putExtra("movieEntryId", movie.getLong(COL_ID))
-                        .putExtra("movieId", movie.getLong(COL_MOVIE_ID));
-                startActivity(details);
+                ((Callback) getActivity()).onItemSelected(
+                        movie.getLong(COL_ID),
+                        movie.getLong(COL_MOVIE_ID)
+                );
             }
         });
         return rootView;

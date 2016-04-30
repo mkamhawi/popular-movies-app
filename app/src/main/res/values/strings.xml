@@ -9,6 +9,7 @@
     <string name="reviews_btn_caption">Reviews</string>
     <string name="empty_reviews_list_message">No Reviews Available</string>
     <string name="empty_movies_list_message">Empty Category</string>
+    <string name="no_movie_selected_tablet">Please select a movie to view its details</string>
 
     <!-- Strings related to Settings -->
     <string name="pref_header_general">General</string>

@@ -8,8 +8,8 @@ import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.TextView;
 
-import com.tutorial.nano.popularmovies.fragments.MovieDetailFragment;
 import com.tutorial.nano.popularmovies.R;
+import com.tutorial.nano.popularmovies.fragments.MovieDetailFragment;
 
 public class MovieDetailsCursorAdapter extends CursorAdapter {
 

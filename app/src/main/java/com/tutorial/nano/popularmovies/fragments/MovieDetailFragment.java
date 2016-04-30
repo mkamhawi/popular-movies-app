@@ -35,7 +35,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     private static final int FAVORITES_LOADER = 2;
     private boolean fetchedExtraMovieDetails;
     private long movieId;
-    private long movieEntryId;
+    private long entryId;
 
     private MovieDetailsCursorAdapter mMovieDetailsCursorAdapter;
 
@@ -94,17 +94,20 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         fetchedExtraMovieDetails = false;
-        Intent intent = getActivity().getIntent();
-        movieId = intent.getExtras().getLong("movieId");
-        movieEntryId = intent.getExtras().getLong("movieEntryId");
+        Bundle arguments = getArguments();
+        if(arguments != null) {
+            entryId = arguments.getLong("entryId");
+            movieId = arguments.getLong("movieId");
+        }
 
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
 
         ListView trailersList = (ListView) rootView.findViewById(R.id.movie_trailers_list);
-        ViewGroup header = (ViewGroup) inflater.inflate(R.layout.movie_details_header, container, false);
+        ViewGroup header = (ViewGroup) inflater.inflate(R.layout.movie_details_header, null, false);
         HeaderViewHolder headerViewHolder = new HeaderViewHolder(header);
         rootView.setTag(headerViewHolder);
         trailersList.addHeaderView(header);
+        trailersList.setEmptyView(rootView.findViewById(R.id.no_movie_selected));
 
         final ImageButton favoriteButton = (ImageButton) header.findViewById(R.id.favorite_button);
         favoriteButton.setOnClickListener(new View.OnClickListener() {
@@ -139,7 +142,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             }
         });
 
-        View reviewsButton = inflater.inflate(R.layout.display_reviews_button, container, false);
+        View reviewsButton = inflater.inflate(R.layout.display_reviews_button, null, false);
         reviewsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -183,7 +186,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         if (id == MOVIE_DETAILS_LOADER) {
-            Uri movieDetailsUri = MoviesContract.MovieEntry.buildMovieUri(movieEntryId);
+            Uri movieDetailsUri = MoviesContract.MovieEntry.buildMovieUri(entryId);
 
             return new CursorLoader(
                     getContext(),
@@ -270,8 +273,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     }
 
     private void updateDetailsList() {
-        Intent intent = getActivity().getIntent();
-        if (intent == null) {
+        if (movieId == 0) {
             return;
         }
         fetchedExtraMovieDetails = true;
