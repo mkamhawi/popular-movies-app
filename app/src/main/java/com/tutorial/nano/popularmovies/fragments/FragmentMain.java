@@ -127,9 +127,6 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (!data.moveToFirst() && loader.getId() == MOVIES_LOADER) {
-            updateMovieList();
-        }
         mMoviesCursorAdapter.swapCursor(data);
     }
 
