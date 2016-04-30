@@ -17,7 +17,7 @@ android:orientation="vertical" >
         android:textSize="@dimen/title_text_size" />
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
 
@@ -29,7 +29,7 @@ android:orientation="vertical" >
             android:layout_gravity="left" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
@@ -38,6 +38,8 @@ android:orientation="vertical" >
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/small_margin"
                 android:layout_weight="1"
+                android:gravity="center"
+                android:layout_gravity="center"
                 android:id="@+id/movie_detail_release_date"
                 android:textSize="@dimen/subtitle_text_size" />
 
@@ -46,6 +48,7 @@ android:orientation="vertical" >
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/small_margin"
                 android:layout_weight="1"
+                android:layout_gravity="center"
                 style="?android:attr/ratingBarStyleSmall"
                 android:numStars="5"
                 android:stepSize="0.1"
@@ -56,6 +59,7 @@ android:orientation="vertical" >
                 android:layout_height="@dimen/favorite_button_height"
                 android:scaleType="fitCenter"
                 android:layout_weight="1"
+                android:layout_gravity="center"
                 android:background="#00ffffff"
                 android:id="@+id/favorite_button"
                 android:src="@drawable/favorite_button" />
