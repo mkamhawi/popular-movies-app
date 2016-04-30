@@ -10,8 +10,11 @@ import android.view.MenuItem;
 import com.tutorial.nano.popularmovies.R;
 import com.tutorial.nano.popularmovies.fragments.FragmentMain;
 import com.tutorial.nano.popularmovies.fragments.MovieDetailFragment;
+import com.tutorial.nano.popularmovies.fragments.MovieReviewsFragment;
+import com.tutorial.nano.popularmovies.fragments.SingleReviewFragment;
+import com.tutorial.nano.popularmovies.interfaces.MasterActivityCallback;
 
-public class MainActivity extends AppCompatActivity implements FragmentMain.Callback {
+public class MainActivity extends AppCompatActivity implements MasterActivityCallback {
 
     private String moviesCategory;
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
@@ -74,24 +77,51 @@ public class MainActivity extends AppCompatActivity implements FragmentMain.Call
     }
 
     @Override
-    public void onItemSelected(long entryId, long movieId) {
+    public void onItemSelected(long entryId, long apiId, String sourceFragmentName) {
         if(mTwoPane) {
-            Bundle arguments = new Bundle();
-            arguments.putLong("entryId", entryId);
-            arguments.putLong("movieId", movieId);
+            if(sourceFragmentName.equals(FragmentMain.class.getSimpleName())) {
+                Bundle arguments = new Bundle();
+                arguments.putLong("entryId", entryId);
+                arguments.putLong("movieId", apiId);
 
-            MovieDetailFragment detailFragment = new MovieDetailFragment();
-            detailFragment.setArguments(arguments);
+                MovieDetailFragment detailFragment = new MovieDetailFragment();
+                detailFragment.setArguments(arguments);
 
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.movie_detail_container, detailFragment, DETAILFRAGMENT_TAG)
-                    .commit();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.movie_detail_container, detailFragment, DETAILFRAGMENT_TAG)
+                        .commit();
+            }
 
+            if(sourceFragmentName.equals(MovieDetailFragment.class.getSimpleName())) {
+                Bundle arguments = new Bundle();
+                arguments.putLong("movieId", apiId);
+
+                MovieReviewsFragment detailFragment = new MovieReviewsFragment();
+                detailFragment.setArguments(arguments);
+
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.movie_detail_container, detailFragment, DETAILFRAGMENT_TAG)
+                        .commit();
+            }
+
+            if(sourceFragmentName.equals(MovieReviewsFragment.class.getSimpleName())) {
+                Bundle arguments = new Bundle();
+                arguments.putLong("entryId", entryId);
+
+                SingleReviewFragment detailFragment = new SingleReviewFragment();
+                detailFragment.setArguments(arguments);
+
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.movie_detail_container, detailFragment, DETAILFRAGMENT_TAG)
+                        .commit();
+            }
         } else {
-            Intent intent = new Intent(this, MovieDetailActivity.class)
-                    .putExtra("entryId", entryId)
-                    .putExtra("movieId", movieId);
-            startActivity(intent);
+            if(sourceFragmentName.equals(FragmentMain.class.getSimpleName())) {
+                Intent intent = new Intent(this, MovieDetailActivity.class)
+                        .putExtra("entryId", entryId)
+                        .putExtra("movieId", apiId);
+                startActivity(intent);
+            }
         }
     }
 }

@@ -16,6 +16,7 @@ import android.widget.GridView;
 import com.tutorial.nano.popularmovies.R;
 import com.tutorial.nano.popularmovies.adapters.MoviesCursorAdapter;
 import com.tutorial.nano.popularmovies.data.MoviesContract;
+import com.tutorial.nano.popularmovies.interfaces.MasterActivityCallback;
 import com.tutorial.nano.popularmovies.tasks.FetchMoviesTask;
 
 public class FragmentMain extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -45,10 +46,6 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
     static final int FAVORITE_COL_MOVIE_ID = 1;
     public static final int FAVORITE_COL_POSTER_URL_ID = 2;
 
-    public interface Callback {
-        public void onItemSelected(long entryId, long movieId);
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,9 +64,10 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Cursor movie = (Cursor) parent.getItemAtPosition(position);
-                ((Callback) getActivity()).onItemSelected(
+                ((MasterActivityCallback) getActivity()).onItemSelected(
                         movie.getLong(COL_ID),
-                        movie.getLong(COL_MOVIE_ID)
+                        movie.getLong(COL_MOVIE_ID),
+                        FragmentMain.class.getSimpleName()
                 );
             }
         });

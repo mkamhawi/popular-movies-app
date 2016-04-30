@@ -23,9 +23,9 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 import com.tutorial.nano.popularmovies.R;
-import com.tutorial.nano.popularmovies.activities.MovieReviewsActivity;
 import com.tutorial.nano.popularmovies.adapters.MovieDetailsCursorAdapter;
 import com.tutorial.nano.popularmovies.data.MoviesContract;
+import com.tutorial.nano.popularmovies.interfaces.MasterActivityCallback;
 import com.tutorial.nano.popularmovies.tasks.FetchExtraMovieDetailsTask;
 
 public class MovieDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -147,9 +147,11 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         reviewsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent reviews = new Intent(getContext(), MovieReviewsActivity.class)
-                        .putExtra("movieId", movieId);
-                startActivity(reviews);
+                ((MasterActivityCallback) getActivity()).onItemSelected(
+                        entryId,
+                        movieId,
+                        MovieDetailFragment.class.getSimpleName()
+                );
             }
         });
         trailersList.addFooterView(reviewsButton);

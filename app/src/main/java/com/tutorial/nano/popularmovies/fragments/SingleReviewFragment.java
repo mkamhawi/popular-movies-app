@@ -1,7 +1,6 @@
 package com.tutorial.nano.popularmovies.fragments;
 
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,6 +19,7 @@ import com.tutorial.nano.popularmovies.data.MoviesContract;
 public class SingleReviewFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int REVIEW_LOADER = 0;
+    private long entryId;
 
     private static final String[] REVIEWS_PROJECTION = {
             MoviesContract.ReviewEntry.TABLE_NAME + "." + MoviesContract.ReviewEntry._ID,
@@ -38,6 +38,11 @@ public class SingleReviewFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Bundle arguments = getArguments();
+        if(arguments != null) {
+            entryId = arguments.getLong("entryId");
+        }
+
         return inflater.inflate(R.layout.fragment_single_review, container, false);
     }
 
@@ -49,14 +54,8 @@ public class SingleReviewFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Intent intent = getActivity().getIntent();
-        if (intent == null) {
-            return null;
-        }
-
-        long reviewEntryId = intent.getExtras().getLong("reviewEntryId");
         if (id == REVIEW_LOADER) {
-            Uri movieReviewsUri = MoviesContract.ReviewEntry.buildMovieReviewUri(reviewEntryId);
+            Uri movieReviewsUri = MoviesContract.ReviewEntry.buildMovieReviewUri(entryId);
             return new CursorLoader(
                     getContext(),
                     movieReviewsUri,

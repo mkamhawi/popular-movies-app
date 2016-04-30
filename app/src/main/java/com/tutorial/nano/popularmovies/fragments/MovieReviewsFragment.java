@@ -1,7 +1,6 @@
 package com.tutorial.nano.popularmovies.fragments;
 
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,13 +15,14 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.tutorial.nano.popularmovies.R;
-import com.tutorial.nano.popularmovies.activities.SingleReviewActivity;
 import com.tutorial.nano.popularmovies.adapters.MovieReviewsCursorAdapter;
 import com.tutorial.nano.popularmovies.data.MoviesContract;
+import com.tutorial.nano.popularmovies.interfaces.MasterActivityCallback;
 
 public class MovieReviewsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int REVIEWS_LOADER = 0;
+    private long movieId;
 
     private MovieReviewsCursorAdapter mMovieReviewsCursorAdapter;
 
@@ -43,6 +43,11 @@ public class MovieReviewsFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Bundle arguments = getArguments();
+        if(arguments != null) {
+            movieId = arguments.getLong("movieId");
+        }
+
         View rootView = inflater.inflate(R.layout.fragment_movie_reviews, container, false);
 
         ListView reviewsList = (ListView) rootView.findViewById(R.id.movie_reviews_list);
@@ -57,9 +62,11 @@ public class MovieReviewsFragment extends Fragment implements LoaderManager.Load
                 if (item == null) {
                     return;
                 }
-                Intent intent = new Intent(getContext(), SingleReviewActivity.class)
-                        .putExtra("reviewEntryId", item.getLong(COL_REVIEW_ID_INDEX));
-                startActivity(intent);
+                ((MasterActivityCallback) getActivity()).onItemSelected(
+                        item.getLong(COL_REVIEW_ID_INDEX),
+                        movieId,
+                        MovieReviewsFragment.class.getSimpleName()
+                );
             }
         });
         return rootView;
@@ -73,12 +80,6 @@ public class MovieReviewsFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Intent intent = getActivity().getIntent();
-        if (intent == null) {
-            return null;
-        }
-
-        long movieId = intent.getExtras().getLong("movieId");
         if (id == REVIEWS_LOADER) {
             Uri movieReviewsUri = MoviesContract.ReviewEntry.buildAllMovieReviewsUri(Long.toString(movieId));
             String sortOrder = MoviesContract.ReviewEntry._ID + " ASC";

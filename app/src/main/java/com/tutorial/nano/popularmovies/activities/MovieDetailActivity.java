@@ -6,8 +6,9 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.tutorial.nano.popularmovies.R;
 import com.tutorial.nano.popularmovies.fragments.MovieDetailFragment;
+import com.tutorial.nano.popularmovies.interfaces.MasterActivityCallback;
 
-public class MovieDetailActivity extends AppCompatActivity {
+public class MovieDetailActivity extends AppCompatActivity implements MasterActivityCallback {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,5 +28,12 @@ public class MovieDetailActivity extends AppCompatActivity {
                     .add(R.id.movie_detail_container, detailFragment)
                     .commit();
         }
+    }
+
+    @Override
+    public void onItemSelected(long entryId, long apiId, String sourceFragmentName) {
+        Intent reviews = new Intent(this, MovieReviewsActivity.class)
+                .putExtra("movieId", apiId);
+        startActivity(reviews);
     }
 }
