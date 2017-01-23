@@ -1,8 +1,8 @@
 package com.tutorial.nano.popularmovies.fragments;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -13,11 +13,14 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
+import com.tutorial.nano.popularmovies.PopularMoviesApp;
 import com.tutorial.nano.popularmovies.R;
 import com.tutorial.nano.popularmovies.adapters.MoviesCursorAdapter;
 import com.tutorial.nano.popularmovies.data.MoviesContract;
 import com.tutorial.nano.popularmovies.interfaces.MasterActivityCallback;
 import com.tutorial.nano.popularmovies.tasks.FetchMoviesTask;
+
+import javax.inject.Inject;
 
 public class FragmentMain extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -45,10 +48,12 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
     static final int FAVORITE_COL_ID = 0;
     static final int FAVORITE_COL_MOVIE_ID = 1;
     public static final int FAVORITE_COL_POSTER_URL_ID = 2;
+    @Inject protected SharedPreferences mSharedPreferences;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((PopularMoviesApp) getActivity().getApplication()).getAppComponent().inject(this);
         setHasOptionsMenu(true);
     }
 
@@ -81,8 +86,7 @@ public class FragmentMain extends Fragment implements LoaderManager.LoaderCallba
     }
 
     public void updateMovieList() {
-        String sortOrder = PreferenceManager
-                .getDefaultSharedPreferences(getContext())
+        String sortOrder = mSharedPreferences
                 .getString(getString(R.string.pref_key_sort_order), getString(R.string.pref_default_value_sort_order));
         if(sortOrder.equals(getString(R.string.favorites_category_value))) {
             getLoaderManager().destroyLoader(MOVIES_LOADER);
