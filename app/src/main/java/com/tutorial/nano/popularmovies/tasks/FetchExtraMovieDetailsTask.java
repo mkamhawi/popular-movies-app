@@ -1,14 +1,18 @@
 package com.tutorial.nano.popularmovies.tasks;
 
-import android.content.ContentValues;
-import android.content.Context;
+import android.app.Application;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
 import com.tutorial.nano.popularmovies.BuildConfig;
+import com.tutorial.nano.popularmovies.PopularMoviesApp;
 import com.tutorial.nano.popularmovies.R;
-import com.tutorial.nano.popularmovies.data.MoviesContract;
+import com.tutorial.nano.popularmovies.data.MovieReview;
+import com.tutorial.nano.popularmovies.data.MovieReviewDao;
+import com.tutorial.nano.popularmovies.data.MovieTrailer;
+import com.tutorial.nano.popularmovies.data.MovieTrailerDao;
+import com.tutorial.nano.popularmovies.interfaces.AsyncResponseNotification;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,12 +26,19 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
 
+import javax.inject.Inject;
+
 public class FetchExtraMovieDetailsTask extends AsyncTask<String, Void, Void> {
     private final String LOG_TAG = FetchExtraMovieDetailsTask.class.getSimpleName();
-    private final Context mContext;
+    private Application mApplication;
+    @Inject MovieTrailerDao mTrailerDao;
+    @Inject MovieReviewDao mReviewDao;
+    private AsyncResponseNotification mDelegate;
 
-    public FetchExtraMovieDetailsTask(Context context) {
-        mContext = context;
+    public FetchExtraMovieDetailsTask(Application application, AsyncResponseNotification delegate) {
+        ((PopularMoviesApp) application).getAppComponent().inject(this);
+        mApplication = application;
+        mDelegate = delegate;
     }
 
     private void saveTrailersAndReviewsToDb(String json) throws JSONException {
@@ -48,67 +59,43 @@ public class FetchExtraMovieDetailsTask extends AsyncTask<String, Void, Void> {
         final String REVIEW_URL_KEY = "url";
 
         JSONObject responseObject = new JSONObject(json);
-        int movieId = responseObject.getInt(MOVIE_ID_KEY);
+        Long movieId = responseObject.getLong(MOVIE_ID_KEY);
         JSONArray trailersArray = responseObject.getJSONObject(TRAILERS_KEY).getJSONArray(TRAILER_RESULTS_KEY);
         JSONArray reviewsArray = responseObject.getJSONObject(REVIEWS_KEY).getJSONArray(REVIEW_RESULTS_KEY);
 
         int numberOfTrailers = trailersArray.length();
-        Vector<ContentValues> trailersContentValues = new Vector<>(numberOfTrailers);
+        Vector<MovieTrailer> trailers = new Vector<>(numberOfTrailers);
         for (int i = 0; i < numberOfTrailers; i++) {
             JSONObject trailerJsonObject = trailersArray.getJSONObject(i);
-            ContentValues trailerDetails = new ContentValues();
+            MovieTrailer trailer = new MovieTrailer();
 
-            trailerDetails.put(MoviesContract.TrailerEntry.COLUMN_MOVIE_ID, movieId);
-            trailerDetails.put(MoviesContract.TrailerEntry.COLUMN_NAME, trailerJsonObject.getString(TRAILER_NAME_KEY));
-            trailerDetails.put(MoviesContract.TrailerEntry.COLUMN_SIZE, trailerJsonObject.getString(TRAILER_SIZE_KEY));
-            trailerDetails.put(MoviesContract.TrailerEntry.COLUMN_SOURCE, trailerJsonObject.getString(TRAILER_SOURCE_KEY));
-            trailerDetails.put(MoviesContract.TrailerEntry.COLUMN_TYPE, trailerJsonObject.getString(TRAILER_TYPE_KEY));
+            trailer.setMovieId(movieId);
+            trailer.setName(trailerJsonObject.getString(TRAILER_NAME_KEY));
+            trailer.setSize(trailerJsonObject.getString(TRAILER_SIZE_KEY));
+            trailer.setSource(trailerJsonObject.getString(TRAILER_SOURCE_KEY));
+            trailer.setType(trailerJsonObject.getString(TRAILER_TYPE_KEY));
 
-            trailersContentValues.add(trailerDetails);
+            trailers.add(trailer);
         }
 
         int numberOfReviews = reviewsArray.length();
-        Vector<ContentValues> reviewsContentValues = new Vector<>(numberOfReviews);
+        Vector<MovieReview> reviews = new Vector<>(numberOfReviews);
         for (int i = 0; i < numberOfReviews; i++) {
             JSONObject reviewJsonObject = reviewsArray.getJSONObject(i);
-            ContentValues reviewDetails = new ContentValues();
+            MovieReview review = new MovieReview();
 
-            reviewDetails.put(MoviesContract.ReviewEntry.COLUMN_MOVIE_ID, movieId);
-            reviewDetails.put(MoviesContract.ReviewEntry.COLUMN_REVIEW_ID, reviewJsonObject.getString(REVIEW_ID_KEY));
-            reviewDetails.put(MoviesContract.ReviewEntry.COLUMN_REVIEW_URL, reviewJsonObject.getString(REVIEW_URL_KEY));
-            reviewDetails.put(MoviesContract.ReviewEntry.COLUMN_AUTHOR, reviewJsonObject.getString(REVIEW_AUTHOR_KEY));
-            reviewDetails.put(MoviesContract.ReviewEntry.COLUMN_CONTENT, reviewJsonObject.getString(REVIEW_CONTENT_KEY));
+            review.setMovieId(movieId);
+            review.setReviewId(reviewJsonObject.getString(REVIEW_ID_KEY));
+            review.setReviewURL(reviewJsonObject.getString(REVIEW_URL_KEY));
+            review.setAuthor(reviewJsonObject.getString(REVIEW_AUTHOR_KEY));
+            review.setContent(reviewJsonObject.getString(REVIEW_CONTENT_KEY));
 
-            reviewsContentValues.add(reviewDetails);
+            reviews.add(review);
         }
 
-        Uri trailersUri = MoviesContract.TrailerEntry.buildAllMovieTrailersUri(Integer.toString(movieId));
-        int deletedTrailersCount = 0;
-        int insertedTrailersCount = 0;
-
-        Uri reviewsUri = MoviesContract.ReviewEntry.buildAllMovieReviewsUri(Integer.toString(movieId));
-        int deletedReviewsCount = 0;
-        int insertedReviewsCount = 0;
-
-        if(trailersContentValues.size() > 0) {
-            deletedTrailersCount = mContext.getContentResolver().delete(trailersUri, null, null);
-            ContentValues[] fetchedTrailers = new ContentValues[trailersContentValues.size()];
-            trailersContentValues.toArray(fetchedTrailers);
-            insertedTrailersCount = mContext.getContentResolver().bulkInsert(trailersUri, fetchedTrailers);
-        }
-
-        if(reviewsContentValues.size() > 0) {
-            deletedReviewsCount = mContext.getContentResolver().delete(reviewsUri, null, null);
-            ContentValues[] fetchedReviews = new ContentValues[reviewsContentValues.size()];
-            reviewsContentValues.toArray(fetchedReviews);
-            insertedReviewsCount = mContext.getContentResolver().bulkInsert(reviewsUri, fetchedReviews);
-        }
-
+        mTrailerDao.insertOrReplaceInTx(trailers);
+        mReviewDao.insertOrReplaceInTx(reviews);
         Log.d(LOG_TAG, "FetchExtraMovieDataTask completed.");
-        Log.d(LOG_TAG, deletedTrailersCount + " trailers deleted.");
-        Log.d(LOG_TAG, insertedTrailersCount + " trailers inserted.");
-        Log.d(LOG_TAG, deletedReviewsCount + " reviews deleted.");
-        Log.d(LOG_TAG, insertedReviewsCount + " reviews inserted.");
     }
 
     @Override
@@ -122,7 +109,7 @@ public class FetchExtraMovieDetailsTask extends AsyncTask<String, Void, Void> {
 
         String jsonResult;
         try {
-            final String BASE_URL = mContext.getString(R.string.movies_api_base_url);
+            final String BASE_URL = mApplication.getString(R.string.movies_api_base_url);
             final String MOVIE_ID = params[0];
             final String API_KEY_PARAM = "api_key";
             final String APPEND_TO_RESPONSE = "append_to_response";
@@ -178,6 +165,7 @@ public class FetchExtraMovieDetailsTask extends AsyncTask<String, Void, Void> {
                     Log.e(LOG_TAG, "Error closing stream", e);
                 }
             }
+            mDelegate.notifyTaskCompleted();
         }
     }
 }
