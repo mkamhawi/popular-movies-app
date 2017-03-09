@@ -25,9 +25,6 @@
         <activity android:name=".activities.MovieDetailActivity" />
         <activity android:name=".activities.MovieReviewsActivity" />
         <activity android:name=".activities.SingleReviewActivity" />
-        <provider
-            android:authorities="com.tutorial.nano.popularmovies"
-            android:name=".data.MoviesProvider" />
     </application>
 
 </manifest>

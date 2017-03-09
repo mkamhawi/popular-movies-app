@@ -1,15 +1,12 @@
 package com.tutorial.nano.popularmovies.fragments;
 
 
-import android.content.ContentValues;
+import android.app.Application;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,74 +19,47 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+import com.tutorial.nano.popularmovies.PopularMoviesApp;
 import com.tutorial.nano.popularmovies.R;
-import com.tutorial.nano.popularmovies.adapters.MovieDetailsCursorAdapter;
-import com.tutorial.nano.popularmovies.data.MoviesContract;
+import com.tutorial.nano.popularmovies.adapters.TrailersAdapter;
+import com.tutorial.nano.popularmovies.data.FavoriteMovie;
+import com.tutorial.nano.popularmovies.data.FavoriteMovieDao;
+import com.tutorial.nano.popularmovies.data.Movie;
+import com.tutorial.nano.popularmovies.data.MovieDao;
+import com.tutorial.nano.popularmovies.data.MovieTrailer;
+import com.tutorial.nano.popularmovies.interfaces.AsyncResponseNotification;
 import com.tutorial.nano.popularmovies.interfaces.MasterActivityCallback;
 import com.tutorial.nano.popularmovies.tasks.FetchExtraMovieDetailsTask;
 
-public class MovieDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+import javax.inject.Inject;
+
+public class MovieDetailFragment extends Fragment implements AsyncResponseNotification {
     private final String LOG_TAG = MovieDetailFragment.class.getSimpleName();
-    private static final int MOVIE_DETAILS_LOADER = 0;
-    private static final int TRAILERS_LOADER = 1;
-    private static final int FAVORITES_LOADER = 2;
+
     private boolean fetchedExtraMovieDetails;
-    private long movieId;
+    private long mMovieId;
     private long entryId;
+    public List<MovieTrailer> mTrailers;
 
-    private MovieDetailsCursorAdapter mMovieDetailsCursorAdapter;
+    @Inject Application mApplication;
+    FetchExtraMovieDetailsTask mFetchExtraMovieDetailsTask;
 
-    private static final String[] MOVIE_PROJECTION = {
-            MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry._ID,
-            MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry.COLUMN_MOVIE_ID,
-            MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry.COLUMN_TITLE,
-            MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry.COLUMN_POSTER_URL,
-            MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry.COLUMN_PLOT,
-            MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry.COLUMN_RELEASE_DATE,
-            MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry.COLUMN_VOTE_AVERAGE
-    };
+    TrailersAdapter mTrailersAdapter;
 
-    static final int COL_ID_INDEX = 0;
-    static final int COL_MOVIE_ID_INDEX = 1;
-    static final int COL_TITLE_INDEX = 2;
-    static final int COL_POSTER_URL_INDEX = 3;
-    static final int COL_PLOT_INDEX = 4;
-    static final int COL_RELEASE_DATE_INDEX = 5;
-    static final int COL_VOTE_AVERAGE_INDEX = 6;
-
-    private static final String[] TRAILERS_PROJECTION = {
-            MoviesContract.TrailerEntry.TABLE_NAME + "." + MoviesContract.TrailerEntry._ID,
-            MoviesContract.TrailerEntry.TABLE_NAME + "." + MoviesContract.TrailerEntry.COLUMN_NAME,
-            MoviesContract.TrailerEntry.TABLE_NAME + "." + MoviesContract.TrailerEntry.COLUMN_SOURCE
-    };
-
-    static final int COL_TRAILER_ID_INDEX = 0;
-    public static final int COL_TRAILER_NAME_INDEX = 1;
-    static final int COL_TRAILER_SOURCE_INDEX = 2;
-
-    private static final String[] FAVORITE_MOVIE_PROJECTION = {
-            MoviesContract.FavoriteEntry.TABLE_NAME + "." + MoviesContract.FavoriteEntry._ID,
-            MoviesContract.FavoriteEntry.TABLE_NAME + "." + MoviesContract.FavoriteEntry.COLUMN_MOVIE_ID,
-            MoviesContract.FavoriteEntry.TABLE_NAME + "." + MoviesContract.FavoriteEntry.COLUMN_TITLE,
-            MoviesContract.FavoriteEntry.TABLE_NAME + "." + MoviesContract.FavoriteEntry.COLUMN_POSTER_URL,
-            MoviesContract.FavoriteEntry.TABLE_NAME + "." + MoviesContract.FavoriteEntry.COLUMN_PLOT,
-            MoviesContract.FavoriteEntry.TABLE_NAME + "." + MoviesContract.FavoriteEntry.COLUMN_RELEASE_DATE,
-            MoviesContract.FavoriteEntry.TABLE_NAME + "." + MoviesContract.FavoriteEntry.COLUMN_VOTE_AVERAGE
-    };
-
-    static final int FAVORITE_COL_ID = 0;
-    static final int FAVORITE_COL_MOVIE_ID = 1;
-    static final int FAVORITE_COL_TITLE_INDEX = 2;
-    static final int FAVORITE_COL_POSTER_URL_INDEX = 3;
-    static final int FAVORITE_COL_PLOT_INDEX = 4;
-    static final int FAVORITE_COL_RELEASE_DATE_INDEX = 5;
-    static final int FAVORITE_COL_VOTE_AVERAGE_INDEX = 6;
-
+    @Inject MovieDao mMovieDao;
+    @Inject FavoriteMovieDao mFavoriteMovieDao;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((PopularMoviesApp) getActivity().getApplication()).getAppComponent().inject(this);
+        mTrailers = new ArrayList<>();
+        mFetchExtraMovieDetailsTask = new FetchExtraMovieDetailsTask(mApplication, this);
     }
 
     @Override
@@ -98,7 +68,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         Bundle arguments = getArguments();
         if(arguments != null) {
             entryId = arguments.getLong("entryId");
-            movieId = arguments.getLong("movieId");
+            mMovieId = arguments.getLong("movieId");
         }
 
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
@@ -116,29 +86,13 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             @Override
             public void onClick(View v) {
                 if (favoriteButton.isSelected()) {
-                    Uri favoriteMovieUri = MoviesContract.FavoriteEntry.buildFavoriteWithMovieIdUri(Long.toString(movieId));
-                    int deletedCount = getContext().getContentResolver().delete(favoriteMovieUri, null, null);
-                    Log.d(LOG_TAG, deletedCount + " rows deleted.");
+                    mFavoriteMovieDao.queryBuilder()
+                            .where(FavoriteMovieDao.Properties.MovieId.eq(mMovieId))
+                            .unique().delete();
                     favoriteButton.setSelected(false);
                 } else {
-                    HeaderViewHolder headerViewHolder = (HeaderViewHolder) getView().getTag();
-                    if (headerViewHolder == null || headerViewHolder.title.isEmpty()) {
-                        return;
-                    }
-                    ContentValues movieDetails = new ContentValues();
-
-                    movieDetails.put(MoviesContract.FavoriteEntry.COLUMN_MOVIE_ID, movieId);
-                    movieDetails.put(MoviesContract.FavoriteEntry.COLUMN_TITLE, headerViewHolder.title);
-                    movieDetails.put(MoviesContract.FavoriteEntry.COLUMN_POSTER_URL, headerViewHolder.posterUrl);
-                    movieDetails.put(MoviesContract.FavoriteEntry.COLUMN_PLOT, headerViewHolder.plot);
-                    movieDetails.put(MoviesContract.FavoriteEntry.COLUMN_RELEASE_DATE, headerViewHolder.releaseDate);
-                    movieDetails.put(MoviesContract.FavoriteEntry.COLUMN_VOTE_AVERAGE, headerViewHolder.voteAverage);
-
-                    Uri insertedFavoriteUri = getContext().getContentResolver().insert(MoviesContract.FavoriteEntry.CONTENT_URI, movieDetails);
-                    if(insertedFavoriteUri != null) {
-                        Log.d(LOG_TAG, insertedFavoriteUri + " inserted.");
-                        favoriteButton.setSelected(true);
-                    }
+                    mFavoriteMovieDao.insertInTx(new FavoriteMovie(null, mMovieId));
+                    favoriteButton.setSelected(true);
                 }
             }
         });
@@ -149,30 +103,28 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             public void onClick(View v) {
                 ((MasterActivityCallback) getActivity()).onItemSelected(
                         entryId,
-                        movieId,
+                        mMovieId,
                         MovieDetailFragment.class.getSimpleName()
                 );
             }
         });
         trailersList.addFooterView(reviewsButton);
 
-        mMovieDetailsCursorAdapter = new MovieDetailsCursorAdapter(getContext(), null, 0);
-        trailersList.setAdapter(mMovieDetailsCursorAdapter);
+        mTrailersAdapter = new TrailersAdapter(getContext(), R.id.movie_trailers_list, mTrailers);
+        trailersList.setAdapter(mTrailersAdapter);
         trailersList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Cursor item = (Cursor) parent.getItemAtPosition(position);
+                MovieTrailer item = (MovieTrailer) parent.getItemAtPosition(position);
                 if (item == null) {
                     return;
                 }
-                if (item.getColumnName(COL_TRAILER_SOURCE_INDEX).equals(MoviesContract.TrailerEntry.COLUMN_SOURCE)) {
-                    Uri videoUri = Uri.parse(getString(R.string.youtube_video_base_url))
-                            .buildUpon()
-                            .appendQueryParameter("v", item.getString(COL_TRAILER_SOURCE_INDEX))
-                            .build();
-                    Intent trailerIntent = new Intent(Intent.ACTION_VIEW, videoUri);
-                    startActivity(trailerIntent);
-                }
+                Uri videoUri = Uri.parse(getString(R.string.youtube_video_base_url))
+                        .buildUpon()
+                        .appendQueryParameter("v", item.getSource())
+                        .build();
+                Intent trailerIntent = new Intent(Intent.ACTION_VIEW, videoUri);
+                startActivity(trailerIntent);
             }
         });
         return rootView;
@@ -180,108 +132,28 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        getLoaderManager().initLoader(MOVIE_DETAILS_LOADER, null, this);
-        getLoaderManager().initLoader(TRAILERS_LOADER, null, this);
-        getLoaderManager().initLoader(FAVORITES_LOADER, null, this);
+        reloadData();
         super.onActivityCreated(savedInstanceState);
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if (id == MOVIE_DETAILS_LOADER) {
-            Uri movieDetailsUri = MoviesContract.MovieEntry.buildMovieUri(entryId);
-
-            return new CursorLoader(
-                    getContext(),
-                    movieDetailsUri,
-                    MOVIE_PROJECTION,
-                    null,
-                    null,
-                    null
-            );
-        }
-
-        if (id == TRAILERS_LOADER) {
-            Uri movieTrailersUri = MoviesContract.TrailerEntry.buildAllMovieTrailersUri(Long.toString(movieId));
-            String sortOrder = MoviesContract.TrailerEntry._ID + " ASC";
-            return new CursorLoader(
-                    getContext(),
-                    movieTrailersUri,
-                    TRAILERS_PROJECTION,
-                    null,
-                    null,
-                    sortOrder
-            );
-        }
-
-        if (id == FAVORITES_LOADER) {
-            Uri favoriteMovieUri = MoviesContract.FavoriteEntry.buildFavoriteWithMovieIdUri(Long.toString(movieId));
-            return new CursorLoader(
-                    getContext(),
-                    favoriteMovieUri,
-                    FAVORITE_MOVIE_PROJECTION,
-                    null,
-                    null,
-                    null
-            );
-        }
-
-        return null;
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        int loaderId = loader.getId();
-
-        HeaderViewHolder headerViewHolder = (HeaderViewHolder) getView().getTag();
-        if (loaderId == MOVIE_DETAILS_LOADER && data.moveToFirst() && headerViewHolder != null) {
-            String posterUrl = data.getString(COL_POSTER_URL_INDEX);
-            Picasso.with(getContext()).load(posterUrl).into(headerViewHolder.poster);
-
-            headerViewHolder.setValues(
-                    data.getString(COL_TITLE_INDEX),
-                    posterUrl,
-                    data.getString(COL_PLOT_INDEX),
-                    data.getString(COL_RELEASE_DATE_INDEX),
-                    data.getDouble(COL_VOTE_AVERAGE_INDEX)
-            );
-        }
-
-        if (loaderId == TRAILERS_LOADER) {
-            if(!data.moveToFirst() && !fetchedExtraMovieDetails) {
-                updateDetailsList();
-            }
-            mMovieDetailsCursorAdapter.swapCursor(data);
-        }
-
-        if (loaderId == FAVORITES_LOADER && data.moveToFirst()) {
-            String posterUrl = data.getString(FAVORITE_COL_POSTER_URL_INDEX);
-            Picasso.with(getContext()).load(posterUrl).into(headerViewHolder.poster);
-
-            headerViewHolder.setValues(
-                data.getString(FAVORITE_COL_TITLE_INDEX),
-                posterUrl,
-                data.getString(FAVORITE_COL_PLOT_INDEX),
-                data.getString(FAVORITE_COL_RELEASE_DATE_INDEX),
-                data.getDouble(FAVORITE_COL_VOTE_AVERAGE_INDEX)
-            );
-
-            headerViewHolder.favoriteButton.setSelected(true);
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        mMovieDetailsCursorAdapter.swapCursor(null);
-    }
-
     private void updateDetailsList() {
-        if (movieId == 0) {
+        if (mMovieId == 0) {
             return;
         }
         fetchedExtraMovieDetails = true;
-        FetchExtraMovieDetailsTask extraMovieDetailsTask = new FetchExtraMovieDetailsTask(getContext());
-        extraMovieDetailsTask.execute(Long.toString(movieId));
+        mFetchExtraMovieDetailsTask.execute(Long.toString(mMovieId));
+    }
+
+    private void reloadData() {
+        new GetMovieFromDbTask().execute();
+        new GetTrailersFromDbTask().execute();
+        new CheckIfFavoriteTask().execute();
+    }
+
+    @Override
+    public void notifyTaskCompleted() {
+        mMovieDao.detachAll();
+        reloadData();
     }
 
     public static class HeaderViewHolder{
@@ -298,7 +170,23 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         public String releaseDate;
         public Double voteAverage;
 
-        public void setValues(String title, String posterUrl, String plot, String releaseDate, double voteAverage) {
+        public void setValues(
+                String title,
+                String posterUrl,
+                String plot,
+                String releaseDate,
+                double voteAverage
+        ) {
+            try {
+                Date parsedDate = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy").parse(releaseDate);
+                String formatedDate = new SimpleDateFormat("dd MMMM yyyy").format(parsedDate);
+                this.releaseDate = formatedDate;
+                releaseDateTextView.setText(formatedDate);
+            } catch (Exception e) {
+                Log.d("HeaderViewHolder", e.toString());
+                this.releaseDate = releaseDate;
+                releaseDateTextView.setText(releaseDate);
+            }
             this.title = title;
             titleTextView.setText(title);
 
@@ -306,8 +194,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
 
             this.plot = plot;
             plotTextView.setText(plot);
-            this.releaseDate = releaseDate;
-            releaseDateTextView.setText(releaseDate);
             this.voteAverage = voteAverage;
             voteAverageRatingBar.setRating((float) voteAverage * 5/10);
         }
@@ -319,6 +205,70 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             releaseDateTextView = (TextView) view.findViewById(R.id.movie_detail_release_date);
             voteAverageRatingBar = (RatingBar) view.findViewById(R.id.movie_detail_vote_average);
             favoriteButton = (ImageButton) view.findViewById(R.id.favorite_button);
+        }
+    }
+
+    public class GetMovieFromDbTask extends AsyncTask<Void, Void, Movie> {
+        @Override
+        protected Movie doInBackground(Void... params) {
+            return mMovieDao.queryBuilder()
+                    .where(MovieDao.Properties.Id.eq(mMovieId))
+                    .unique();
+
+        }
+
+        @Override
+        protected void onPostExecute(Movie movie) {
+            HeaderViewHolder headerViewHolder = (HeaderViewHolder) getView().getTag();
+            if(movie != null && headerViewHolder != null) {
+                String posterUrl = movie.getPosterUrl();
+                Picasso.with(getContext()).load(posterUrl).into(headerViewHolder.poster);
+
+                headerViewHolder.setValues(
+                        movie.getTitle(),
+                        posterUrl,
+                        movie.getPlot(),
+                        movie.getReleaseDate().toString(),
+                        movie.getVoteAverage()
+                );
+            }
+        }
+    }
+
+    public class GetTrailersFromDbTask extends AsyncTask<Void, Void, List<MovieTrailer>> {
+        @Override
+        protected List<MovieTrailer> doInBackground(Void... params) {
+            return mMovieDao.queryBuilder()
+                    .where(MovieDao.Properties.Id.eq(mMovieId))
+                    .unique().getTrailers();
+        }
+
+        @Override
+        protected void onPostExecute(List<MovieTrailer> trailers) {
+            if(trailers.isEmpty() && !fetchedExtraMovieDetails) {
+                updateDetailsList();
+            }
+            mTrailers.clear();
+            mTrailers.addAll(trailers);
+            mTrailersAdapter.notifyDataSetChanged();
+        }
+    }
+
+    public class CheckIfFavoriteTask extends AsyncTask<Void, Void, FavoriteMovie> {
+        @Override
+        protected FavoriteMovie doInBackground(Void... params) {
+            return mFavoriteMovieDao.queryBuilder()
+                    .where(FavoriteMovieDao.Properties.MovieId.eq(mMovieId))
+                    .unique();
+        }
+
+        @Override
+        protected void onPostExecute(FavoriteMovie favoriteEntry) {
+            if(favoriteEntry != null) {
+                HeaderViewHolder headerViewHolder = (HeaderViewHolder) getView().getTag();
+                headerViewHolder.favoriteButton.setSelected(true);
+                mTrailersAdapter.notifyDataSetChanged();
+            }
         }
     }
 }

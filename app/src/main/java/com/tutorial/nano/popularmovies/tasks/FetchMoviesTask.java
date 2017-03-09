@@ -1,14 +1,16 @@
 package com.tutorial.nano.popularmovies.tasks;
 
-import android.content.ContentValues;
-import android.content.Context;
+import android.app.Application;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
 import com.tutorial.nano.popularmovies.BuildConfig;
+import com.tutorial.nano.popularmovies.PopularMoviesApp;
 import com.tutorial.nano.popularmovies.R;
-import com.tutorial.nano.popularmovies.data.MoviesContract;
+import com.tutorial.nano.popularmovies.data.Movie;
+import com.tutorial.nano.popularmovies.data.MovieDao;
+import com.tutorial.nano.popularmovies.interfaces.AsyncResponseNotification;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,17 +22,28 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Vector;
+
+import javax.inject.Inject;
 
 public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
     private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
-    private final Context mContext;
+    private Application mApplication;
+    @Inject MovieDao mMovieDao;
+    private AsyncResponseNotification mDelegate;
 
-    public FetchMoviesTask(Context context) {
-        mContext = context;
+    public FetchMoviesTask(Application application, AsyncResponseNotification delegate) {
+        ((PopularMoviesApp) application).getAppComponent().inject(this);
+        mApplication = application;
+        mDelegate = delegate;
     }
 
-    private void saveMoviesToDb(String json) throws JSONException {
+    private void saveMoviesToDb(String json, String sortPreference) throws JSONException {
         final String RESULTS_KEY = "results";
         final String ID_KEY = "id";
         final String TITLE_KEY = "title";
@@ -42,39 +55,35 @@ public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
         JSONArray movieJsonArray = new JSONObject(json).getJSONArray(RESULTS_KEY);
 
         int numberOfMovies = movieJsonArray.length();
-        Vector<ContentValues> contentValues = new Vector<>(numberOfMovies);
-        String posterBaseUrl = mContext.getString(R.string.movies_poster_base_url);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date releaseDate;
+        Vector<Movie> movies = new Vector<>(numberOfMovies);
+        String posterBaseUrl = mApplication.getString(R.string.movies_poster_base_url);
         for (int i = 0; i < numberOfMovies; i++) {
             JSONObject movieJsonObject = movieJsonArray.getJSONObject(i);
             String posterUrl = posterBaseUrl
                     + movieJsonObject.getString(POSTER_PATH_KEY);
 
-            ContentValues movieDetails = new ContentValues();
+            try {
+                releaseDate = dateFormat.parse(movieJsonObject.getString(RELEASE_DATE_KEY));
+            } catch (ParseException e) {
+                Log.d(LOG_TAG, Log.getStackTraceString(e));
+                releaseDate = Calendar.getInstance().getTime();
+            }
 
-            movieDetails.put(MoviesContract.MovieEntry.COLUMN_MOVIE_ID, movieJsonObject.getInt(ID_KEY));
-            movieDetails.put(MoviesContract.MovieEntry.COLUMN_TITLE, movieJsonObject.getString(TITLE_KEY));
-            movieDetails.put(MoviesContract.MovieEntry.COLUMN_POSTER_URL, posterUrl);
-            movieDetails.put(MoviesContract.MovieEntry.COLUMN_PLOT, movieJsonObject.getString(PLOT_KEY));
-            movieDetails.put(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE, movieJsonObject.getString(RELEASE_DATE_KEY));
-            movieDetails.put(MoviesContract.MovieEntry.COLUMN_VOTE_AVERAGE, movieJsonObject.getDouble(VOTE_AVERAGE_KEY));
-
-            contentValues.add(movieDetails);
+            Movie movie = new Movie();
+            movie.setId(movieJsonObject.getLong(ID_KEY));
+            movie.setTitle(movieJsonObject.getString(TITLE_KEY));
+            movie.setPosterUrl(posterUrl);
+            movie.setPlot(movieJsonObject.getString(PLOT_KEY));
+            movie.setReleaseDate(releaseDate);
+            movie.setVoteAverage(movieJsonObject.getDouble(VOTE_AVERAGE_KEY));
+            movie.setSortPreferences(sortPreference);
+            movies.add(movie);
         }
 
-        int deletedCount = 0;
-        int insertedCount = 0;
-
-        if(contentValues.size() > 0) {
-            // Remove all cached movie details to insert new fetched results.
-            deletedCount = mContext.getContentResolver().delete(MoviesContract.MovieEntry.CONTENT_URI, null, null);
-            ContentValues[] fetchedMovies = new ContentValues[contentValues.size()];
-            contentValues.toArray(fetchedMovies);
-            insertedCount = mContext.getContentResolver().bulkInsert(MoviesContract.MovieEntry.CONTENT_URI, fetchedMovies);
-        }
-
+        mMovieDao.insertOrReplaceInTx(movies, false);
         Log.d(LOG_TAG, "FetchMoviesTask completed.");
-        Log.d(LOG_TAG, deletedCount + " rows deleted.");
-        Log.d(LOG_TAG, insertedCount + " rows inserted.");
     }
 
     @Override
@@ -89,12 +98,12 @@ public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
         String jsonResult;
 
         try {
-            final String BASE_URL = mContext.getString(R.string.movies_api_base_url);
-            final String SORT_ORDER = params[0];
+            final String BASE_URL = mApplication.getString(R.string.movies_api_base_url);
+            final String SORT_PREFERENCE = params[0];
             final String API_KEY_PARAM = "api_key";
 
             Uri finalUri = Uri.parse(BASE_URL).buildUpon()
-                    .appendPath(SORT_ORDER)
+                    .appendPath(SORT_PREFERENCE)
                     .appendQueryParameter(API_KEY_PARAM, BuildConfig.THE_MOVIE_DATABASE_API_KEY)
                     .build();
 
@@ -122,7 +131,7 @@ public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
 
             jsonResult = buffer.toString();
             try {
-                saveMoviesToDb(jsonResult);
+                saveMoviesToDb(jsonResult, SORT_PREFERENCE);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, "ERROR parsing json: ", e);
                 e.printStackTrace();
@@ -143,6 +152,7 @@ public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
                     Log.e(LOG_TAG, "Error closing stream", e);
                 }
             }
+            mDelegate.notifyTaskCompleted();
         }
     }
 }
