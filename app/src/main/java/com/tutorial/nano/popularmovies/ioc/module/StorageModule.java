@@ -12,6 +12,7 @@ import com.tutorial.nano.popularmovies.data.MovieDao;
 import com.tutorial.nano.popularmovies.data.MovieReviewDao;
 import com.tutorial.nano.popularmovies.data.MovieTrailerDao;
 
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.greendao.database.Database;
 
 import javax.inject.Singleton;
@@ -57,5 +58,11 @@ public class StorageModule {
     @Singleton
     MovieReviewDao provideMovieReviewDao(DaoSession daoSession) {
         return daoSession.getMovieReviewDao();
+    }
+
+    @Provides
+    @Singleton
+    EventBus provideEventBus() {
+        return EventBus.getDefault();
     }
 }
