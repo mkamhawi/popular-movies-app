@@ -18,10 +18,12 @@ import com.tutorial.nano.popularmovies.data.FavoriteMovie;
 import com.tutorial.nano.popularmovies.data.FavoriteMovieDao;
 import com.tutorial.nano.popularmovies.data.Movie;
 import com.tutorial.nano.popularmovies.data.MovieDao;
-import com.tutorial.nano.popularmovies.interfaces.AsyncResponseNotification;
 import com.tutorial.nano.popularmovies.interfaces.MasterActivityCallback;
-import com.tutorial.nano.popularmovies.tasks.FetchMoviesTask;
+import com.tutorial.nano.popularmovies.network.NetworkJobManager;
+import com.tutorial.nano.popularmovies.network.events.MoviesRetrievedEvent;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.greendao.query.QueryBuilder;
 
 import java.util.ArrayList;
@@ -29,7 +31,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-public class FragmentMain extends Fragment implements AsyncResponseNotification {
+public class FragmentMain extends Fragment {
     private MoviesAdapter mMoviesAdapter;
     private String mSortPreference;
     public List<Movie> mMovies;
@@ -38,6 +40,8 @@ public class FragmentMain extends Fragment implements AsyncResponseNotification 
     @Inject protected SharedPreferences mSharedPreferences;
 
     @Inject protected MovieDao mMovieDao;
+    @Inject protected EventBus mEventBus;
+    @Inject protected NetworkJobManager mNetworkJobManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -79,18 +83,28 @@ public class FragmentMain extends Fragment implements AsyncResponseNotification 
         updateMovieList();
     }
 
+    @Override public void onStart() {
+        super.onStart();
+        mEventBus.register(this);
+    }
+
+    @Override public void onStop() {
+        super.onStop();
+        mEventBus.unregister(this);
+    }
+
     public void updateMovieList() {
         mSortPreference = mSharedPreferences
                 .getString(getString(R.string.pref_key_sort_order), getString(R.string.pref_default_value_sort_order));
         if(mSortPreference.equals(getString(R.string.favorites_category_value))) {
             new GetFavoriteMoviesFromDbTask().execute();
         } else {
-            new FetchMoviesTask(mApplication, this).execute(mSortPreference);
+            mNetworkJobManager.requestMovies(mSortPreference);
         }
     }
 
-    @Override
-    public void notifyTaskCompleted() {
+    @Subscribe
+    public void onMoviesRetrieved(MoviesRetrievedEvent moviesRetrievedEvent) {
         new GetMoviesFromDbTask().execute();
     }
 

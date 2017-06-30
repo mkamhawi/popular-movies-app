@@ -27,9 +27,12 @@ import com.tutorial.nano.popularmovies.data.FavoriteMovieDao;
 import com.tutorial.nano.popularmovies.data.Movie;
 import com.tutorial.nano.popularmovies.data.MovieDao;
 import com.tutorial.nano.popularmovies.data.MovieTrailer;
-import com.tutorial.nano.popularmovies.interfaces.AsyncResponseNotification;
 import com.tutorial.nano.popularmovies.interfaces.MasterActivityCallback;
-import com.tutorial.nano.popularmovies.tasks.FetchExtraMovieDetailsTask;
+import com.tutorial.nano.popularmovies.network.NetworkJobManager;
+import com.tutorial.nano.popularmovies.network.events.MovieDetailsRetrievedEvent;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,7 +41,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-public class MovieDetailFragment extends Fragment implements AsyncResponseNotification {
+public class MovieDetailFragment extends Fragment {
     private final String LOG_TAG = MovieDetailFragment.class.getSimpleName();
 
     private boolean fetchedExtraMovieDetails;
@@ -47,19 +50,19 @@ public class MovieDetailFragment extends Fragment implements AsyncResponseNotifi
     public List<MovieTrailer> mTrailers;
 
     @Inject Application mApplication;
-    FetchExtraMovieDetailsTask mFetchExtraMovieDetailsTask;
 
     TrailersAdapter mTrailersAdapter;
 
     @Inject MovieDao mMovieDao;
     @Inject FavoriteMovieDao mFavoriteMovieDao;
+    @Inject EventBus mEventBus;
+    @Inject NetworkJobManager mNetworkJobManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((PopularMoviesApp) getActivity().getApplication()).getAppComponent().inject(this);
         mTrailers = new ArrayList<>();
-        mFetchExtraMovieDetailsTask = new FetchExtraMovieDetailsTask(mApplication, this);
     }
 
     @Override
@@ -136,12 +139,22 @@ public class MovieDetailFragment extends Fragment implements AsyncResponseNotifi
         super.onActivityCreated(savedInstanceState);
     }
 
+    @Override public void onStart() {
+        super.onStart();
+        mEventBus.register(this);
+    }
+
+    @Override public void onStop() {
+        super.onStop();
+        mEventBus.unregister(this);
+    }
+
     private void updateDetailsList() {
         if (mMovieId == 0) {
             return;
         }
         fetchedExtraMovieDetails = true;
-        mFetchExtraMovieDetailsTask.execute(Long.toString(mMovieId));
+        mNetworkJobManager.requestMovieDetails(Long.toString(mMovieId));
     }
 
     private void reloadData() {
@@ -150,8 +163,8 @@ public class MovieDetailFragment extends Fragment implements AsyncResponseNotifi
         new CheckIfFavoriteTask().execute();
     }
 
-    @Override
-    public void notifyTaskCompleted() {
+    @Subscribe
+    public void onMovieDetailsRetrieved(MovieDetailsRetrievedEvent moviesDetailsRetrievedEvent) {
         mMovieDao.detachAll();
         reloadData();
     }
