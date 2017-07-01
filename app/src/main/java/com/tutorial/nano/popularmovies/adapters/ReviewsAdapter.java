@@ -21,7 +21,7 @@ public class ReviewsAdapter extends ArrayAdapter<MovieReview> {
     public View getView(int position, View convertView, ViewGroup parent) {
         if(convertView == null) {
             convertView = LayoutInflater.from(getContext())
-                    .inflate(R.layout.reviews_list_item, parent, false);
+                    .inflate(R.layout.review_list_item, parent, false);
         }
         MovieReview review = getItem(position);
 

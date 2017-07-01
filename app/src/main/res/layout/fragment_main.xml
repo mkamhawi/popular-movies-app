@@ -22,4 +22,14 @@
         android:text="@string/empty_movies_list_message"
         android:gravity="center"
         android:id="@+id/no_movies_message" />
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="@android:style/Widget.Holo.ProgressBar.Small.Title"
+        android:layout_height="75dp"
+        android:layout_width="75dp"
+        android:layout_gravity="center"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        />
 </RelativeLayout>
