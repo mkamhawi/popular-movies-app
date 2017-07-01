@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ProgressBar;
 
 import com.tutorial.nano.popularmovies.PopularMoviesApp;
 import com.tutorial.nano.popularmovies.R;
@@ -35,6 +36,7 @@ public class FragmentMain extends Fragment {
     private MoviesAdapter mMoviesAdapter;
     private String mSortPreference;
     public List<Movie> mMovies;
+    private ProgressBar mProgressBar;
 
     @Inject protected Application mApplication;
     @Inject protected SharedPreferences mSharedPreferences;
@@ -54,6 +56,7 @@ public class FragmentMain extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        mProgressBar = (ProgressBar) rootView.findViewById(R.id.progress_bar);
         mMoviesAdapter = new MoviesAdapter(getContext(), R.id.movies_grid, mMovies);
         GridView moviesGrid = (GridView) rootView.findViewById(R.id.movies_grid);
         moviesGrid.setAdapter(mMoviesAdapter);
@@ -99,6 +102,7 @@ public class FragmentMain extends Fragment {
         if(mSortPreference.equals(getString(R.string.favorites_category_value))) {
             new GetFavoriteMoviesFromDbTask().execute();
         } else {
+            mProgressBar.setVisibility(View.VISIBLE);
             mNetworkJobManager.requestMovies(mSortPreference);
         }
     }
@@ -122,6 +126,7 @@ public class FragmentMain extends Fragment {
             mMoviesAdapter.clear();
             mMovies.addAll(movies);
             mMoviesAdapter.notifyDataSetChanged();
+            mProgressBar.setVisibility(View.GONE);
         }
     }
 

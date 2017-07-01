@@ -15,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -48,6 +49,7 @@ public class MovieDetailFragment extends Fragment {
     private long mMovieId;
     private long entryId;
     public List<MovieTrailer> mTrailers;
+    private ProgressBar mProgressBar;
 
     @Inject Application mApplication;
 
@@ -75,6 +77,7 @@ public class MovieDetailFragment extends Fragment {
         }
 
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
+        mProgressBar = (ProgressBar) rootView.findViewById(R.id.details_progress_bar);
 
         ListView trailersList = (ListView) rootView.findViewById(R.id.movie_trailers_list);
         ViewGroup header = (ViewGroup) inflater.inflate(R.layout.movie_details_header, null, false);
@@ -154,6 +157,7 @@ public class MovieDetailFragment extends Fragment {
             return;
         }
         fetchedExtraMovieDetails = true;
+        mProgressBar.setVisibility(View.VISIBLE);
         mNetworkJobManager.requestMovieDetails(Long.toString(mMovieId));
     }
 
@@ -187,18 +191,17 @@ public class MovieDetailFragment extends Fragment {
                 String title,
                 String posterUrl,
                 String plot,
-                String releaseDate,
+                Date releaseDate,
                 double voteAverage
         ) {
             try {
-                Date parsedDate = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy").parse(releaseDate);
-                String formatedDate = new SimpleDateFormat("dd MMMM yyyy").format(parsedDate);
-                this.releaseDate = formatedDate;
-                releaseDateTextView.setText(formatedDate);
+                String formattedDate = new SimpleDateFormat("dd MMMM yyyy").format(releaseDate);
+                this.releaseDate = formattedDate;
+                releaseDateTextView.setText(formattedDate);
             } catch (Exception e) {
                 Log.d("HeaderViewHolder", e.toString());
-                this.releaseDate = releaseDate;
-                releaseDateTextView.setText(releaseDate);
+                this.releaseDate = releaseDate.toString();
+                releaseDateTextView.setText(this.releaseDate);
             }
             this.title = title;
             titleTextView.setText(title);
@@ -241,7 +244,7 @@ public class MovieDetailFragment extends Fragment {
                         movie.getTitle(),
                         posterUrl,
                         movie.getPlot(),
-                        movie.getReleaseDate().toString(),
+                        movie.getReleaseDate(),
                         movie.getVoteAverage()
                 );
             }
@@ -264,6 +267,7 @@ public class MovieDetailFragment extends Fragment {
             mTrailers.clear();
             mTrailers.addAll(trailers);
             mTrailersAdapter.notifyDataSetChanged();
+            mProgressBar.setVisibility(View.GONE);
         }
     }
 

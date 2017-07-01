@@ -21,7 +21,7 @@ public class TrailersAdapter extends ArrayAdapter<MovieTrailer> {
     public View getView(int position, View convertView, ViewGroup parent) {
         if(convertView == null) {
             convertView = LayoutInflater.from(getContext())
-                    .inflate(R.layout.trailers_list_item, parent, false);
+                    .inflate(R.layout.trailer_list_item, parent, false);
         }
 
         TextView trailerName = (TextView) convertView.findViewById(R.id.trailer_name);

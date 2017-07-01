@@ -22,7 +22,7 @@ public class MoviesAdapter extends ArrayAdapter<Movie> {
     public View getView(int position, View convertView, ViewGroup parent) {
         if(convertView == null) {
             convertView = LayoutInflater.from(getContext())
-                    .inflate(R.layout.movies_grid_item, parent, false);
+                    .inflate(R.layout.movie_grid_item, parent, false);
         }
         ImageView posterView = (ImageView) convertView.findViewById(R.id.movies_grid_item);
         Picasso.with(getContext()).load(getItem(position).getPosterUrl()).into(posterView);
