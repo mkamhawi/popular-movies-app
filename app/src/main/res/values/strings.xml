@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Popular Movies</string>
-    <string name="movies_api_base_url">http://api.themoviedb.org/</string>
-    <string name="movies_poster_base_url">http://image.tmdb.org/t/p/w185</string>
-    <string name="youtube_video_base_url">http://www.youtube.com/watch</string>
+    <string name="movies_api_base_url">https://api.themoviedb.org/</string>
+    <string name="movies_poster_base_url">https://image.tmdb.org/t/p/w185</string>
+    <string name="youtube_video_base_url">https://www.youtube.com/watch</string>
     <string name="title_activity_settings">Settings</string>
     <string name="refresh_caption">Refresh</string>
     <string name="favorites_category_value">favorites</string>
@@ -17,14 +17,11 @@
     <string name="pref_title_sort_order">Movies category</string>
     <string name="pref_key_sort_order">sort_order_list</string>
     <string name="pref_default_value_sort_order">popular</string>
-    <string-array name="pref_sort_order_list_titles">
-        <item>Popular</item>
-        <item>Top rated</item>
-        <item>Favorites</item>
-    </string-array>
-    <string-array name="pref_sort_order_list_values">
-        <item>popular</item>
-        <item>top_rated</item>
-        <item>@string/favorites_category_value</item>
-    </string-array>
+
+    <string name="nav_header_title">Sorting order</string>
+    <string name="favorites_label">Favorites</string>
+    <string name="popular_label">Popular</string>
+    <string name="now_playing_label">Now playing</string>
+    <string name="top_rated_label">Top rated</string>
+    <string name="upcoming_label">Upcoming</string>
 </resources>

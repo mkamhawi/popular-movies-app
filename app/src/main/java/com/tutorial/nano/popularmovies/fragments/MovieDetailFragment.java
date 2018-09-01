@@ -254,9 +254,11 @@ public class MovieDetailFragment extends Fragment {
     public class GetTrailersFromDbTask extends AsyncTask<Void, Void, List<MovieTrailer>> {
         @Override
         protected List<MovieTrailer> doInBackground(Void... params) {
-            return mMovieDao.queryBuilder()
+            Movie movie = mMovieDao.queryBuilder()
                     .where(MovieDao.Properties.Id.eq(mMovieId))
-                    .unique().getTrailers();
+                    .unique();
+
+            return movie == null ? new ArrayList<MovieTrailer>() : movie.getTrailers();
         }
 
         @Override

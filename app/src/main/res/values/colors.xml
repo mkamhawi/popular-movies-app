@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
     <color name="movieTitleBackground">#009688</color>
     <color name="movieTitleTextColor">#FFFFFF</color>
+    <color name="white">#FFFFFFFF</color>
 </resources>

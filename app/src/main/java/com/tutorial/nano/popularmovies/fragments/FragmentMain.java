@@ -99,11 +99,16 @@ public class FragmentMain extends Fragment {
     public void updateMovieList() {
         mSortPreference = mSharedPreferences
                 .getString(getString(R.string.pref_key_sort_order), getString(R.string.pref_default_value_sort_order));
-        if(mSortPreference.equals(getString(R.string.favorites_category_value))) {
+        updateMovieList(mSortPreference);
+    }
+
+    public void updateMovieList(String sortOrder) {
+        mSortPreference = sortOrder;
+        if(sortOrder.equals(getString(R.string.favorites_category_value))) {
             new GetFavoriteMoviesFromDbTask().execute();
         } else {
             mProgressBar.setVisibility(View.VISIBLE);
-            mNetworkJobManager.requestMovies(mSortPreference);
+            mNetworkJobManager.requestMovies(sortOrder);
         }
     }
 
