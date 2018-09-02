@@ -17,9 +17,18 @@ import com.tutorial.nano.popularmovies.data.MovieReviewDao;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class SingleReviewFragment extends Fragment {
 
     private long mReviewId;
+
+    @BindView(R.id.review_author_name)
+    TextView mAuthorName;
+
+    @BindView(R.id.review_content)
+    TextView mReviewContent;
 
     @Inject protected Application mApplication;
 
@@ -33,11 +42,15 @@ public class SingleReviewFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         Bundle arguments = getArguments();
         if(arguments != null) {
             mReviewId = arguments.getLong("entryId");
         }
-        return inflater.inflate(R.layout.fragment_single_review, container, false);
+
+        View rootView = inflater.inflate(R.layout.fragment_single_review, container, false);
+        ButterKnife.bind(this, rootView);
+        return rootView;
     }
 
     @Override
@@ -56,10 +69,8 @@ public class SingleReviewFragment extends Fragment {
 
         @Override
         protected void onPostExecute(MovieReview review) {
-            TextView authorName = (TextView) getView().findViewById(R.id.review_author_name);
-            authorName.setText(review.getAuthor());
-            TextView reviewContent = (TextView) getView().findViewById(R.id.review_content);
-            reviewContent.setText(review.getContent());
+            mAuthorName.setText(review.getAuthor());
+            mReviewContent.setText(review.getContent());
         }
     }
 }

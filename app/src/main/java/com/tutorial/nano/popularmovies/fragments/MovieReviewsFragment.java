@@ -23,11 +23,18 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnItemClick;
+
 public class MovieReviewsFragment extends Fragment {
     private long mMovieId;
     public List<MovieReview> mReviews;
 
     private ReviewsAdapter mReviewsAdapter;
+
+    @BindView(R.id.movie_reviews_list)
+    ListView mReviewsList;
 
     @Inject protected Application mApplication;
 
@@ -48,26 +55,11 @@ public class MovieReviewsFragment extends Fragment {
         }
 
         View rootView = inflater.inflate(R.layout.fragment_movie_reviews, container, false);
+        ButterKnife.bind(this, rootView);
 
         mReviewsAdapter = new ReviewsAdapter(getContext(), R.id.movie_reviews_list, mReviews);
-        ListView reviewsList = (ListView) rootView.findViewById(R.id.movie_reviews_list);
-        reviewsList.setAdapter(mReviewsAdapter);
-        reviewsList.setEmptyView(rootView.findViewById(R.id.no_reviews_message));
-        reviewsList.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                MovieReview review = (MovieReview) parent.getItemAtPosition(position);
-                if (review == null) {
-                    return;
-                }
-                ((MasterActivityCallback) getActivity()).onItemSelected(
-                        review.getId(),
-                        mMovieId,
-                        MovieReviewsFragment.class.getSimpleName()
-                );
-            }
-        });
+        mReviewsList.setAdapter(mReviewsAdapter);
+        mReviewsList.setEmptyView(rootView.findViewById(R.id.no_reviews_message));
         return rootView;
     }
 
@@ -75,6 +67,22 @@ public class MovieReviewsFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         new GetReviewsFromDbTask().execute();
+    }
+
+    @OnItemClick((R.id.movie_reviews_list))
+    public void onReviewClicked(AdapterView<?> parent, View view, int position, long id) {
+
+        MovieReview review = (MovieReview) parent.getItemAtPosition(position);
+
+        if (review == null) {
+            return;
+        }
+
+        ((MasterActivityCallback) getActivity()).onItemSelected(
+                review.getId(),
+                mMovieId,
+                MovieReviewsFragment.class.getSimpleName()
+        );
     }
 
     public class GetReviewsFromDbTask extends AsyncTask<Void, Void, List<MovieReview>> {

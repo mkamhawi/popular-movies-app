@@ -25,7 +25,7 @@ public class MovieDetailActivity extends AppCompatActivity implements MasterActi
             detailFragment.setArguments(arguments);
 
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.movie_detail_container, detailFragment)
+                    .add(R.id.movie_details_container, detailFragment)
                     .commit();
         }
     }

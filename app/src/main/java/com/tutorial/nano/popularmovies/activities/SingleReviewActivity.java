@@ -8,6 +8,7 @@ import com.tutorial.nano.popularmovies.R;
 import com.tutorial.nano.popularmovies.fragments.SingleReviewFragment;
 
 public class SingleReviewActivity extends AppCompatActivity {
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

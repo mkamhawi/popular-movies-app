@@ -42,6 +42,10 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnItemClick;
+
 public class MovieDetailFragment extends Fragment {
     private final String LOG_TAG = MovieDetailFragment.class.getSimpleName();
 
@@ -49,12 +53,16 @@ public class MovieDetailFragment extends Fragment {
     private long mMovieId;
     private long entryId;
     public List<MovieTrailer> mTrailers;
-    private ProgressBar mProgressBar;
 
-    @Inject Application mApplication;
+    @BindView(R.id.details_progress_bar)
+    ProgressBar mProgressBar;
+
+    @BindView(R.id.movie_trailers_list)
+    ListView mTrailersList;
 
     TrailersAdapter mTrailersAdapter;
 
+    @Inject Application mApplication;
     @Inject MovieDao mMovieDao;
     @Inject FavoriteMovieDao mFavoriteMovieDao;
     @Inject EventBus mEventBus;
@@ -69,6 +77,10 @@ public class MovieDetailFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
+        ButterKnife.bind(this, rootView);
+
         fetchedExtraMovieDetails = false;
         Bundle arguments = getArguments();
         if(arguments != null) {
@@ -76,32 +88,29 @@ public class MovieDetailFragment extends Fragment {
             mMovieId = arguments.getLong("movieId");
         }
 
-        View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
-        mProgressBar = (ProgressBar) rootView.findViewById(R.id.details_progress_bar);
-
-        ListView trailersList = (ListView) rootView.findViewById(R.id.movie_trailers_list);
         ViewGroup header = (ViewGroup) inflater.inflate(R.layout.movie_details_header, null, false);
         HeaderViewHolder headerViewHolder = new HeaderViewHolder(header);
         rootView.setTag(headerViewHolder);
-        trailersList.addHeaderView(header);
-        trailersList.setEmptyView(rootView.findViewById(R.id.no_movie_selected));
 
-        final ImageButton favoriteButton = (ImageButton) header.findViewById(R.id.favorite_button);
+        final ImageButton favoriteButton = header.findViewById(R.id.favorite_button);
         favoriteButton.setOnClickListener(new View.OnClickListener() {
-
             @Override
-            public void onClick(View v) {
-                if (favoriteButton.isSelected()) {
+            public void onClick(View view) {
+
+                if (view.isSelected()) {
                     mFavoriteMovieDao.queryBuilder()
                             .where(FavoriteMovieDao.Properties.MovieId.eq(mMovieId))
                             .unique().delete();
-                    favoriteButton.setSelected(false);
+                    view.setSelected(false);
                 } else {
                     mFavoriteMovieDao.insertInTx(new FavoriteMovie(null, mMovieId));
-                    favoriteButton.setSelected(true);
+                    view.setSelected(true);
                 }
             }
         });
+
+        mTrailersList.addHeaderView(header);
+        mTrailersList.setEmptyView(rootView.findViewById(R.id.no_movie_selected));
 
         View reviewsButton = inflater.inflate(R.layout.display_reviews_button, null, false);
         reviewsButton.setOnClickListener(new View.OnClickListener() {
@@ -114,25 +123,10 @@ public class MovieDetailFragment extends Fragment {
                 );
             }
         });
-        trailersList.addFooterView(reviewsButton);
+        mTrailersList.addFooterView(reviewsButton);
 
         mTrailersAdapter = new TrailersAdapter(getContext(), R.id.movie_trailers_list, mTrailers);
-        trailersList.setAdapter(mTrailersAdapter);
-        trailersList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                MovieTrailer item = (MovieTrailer) parent.getItemAtPosition(position);
-                if (item == null) {
-                    return;
-                }
-                Uri videoUri = Uri.parse(getString(R.string.youtube_video_base_url))
-                        .buildUpon()
-                        .appendQueryParameter("v", item.getSource())
-                        .build();
-                Intent trailerIntent = new Intent(Intent.ACTION_VIEW, videoUri);
-                startActivity(trailerIntent);
-            }
-        });
+        mTrailersList.setAdapter(mTrailersAdapter);
         return rootView;
     }
 
@@ -150,6 +144,20 @@ public class MovieDetailFragment extends Fragment {
     @Override public void onStop() {
         super.onStop();
         mEventBus.unregister(this);
+    }
+
+    @OnItemClick(R.id.movie_trailers_list)
+    public void onTrailerClicked(AdapterView<?> parent, View view, int position, long id) {
+        MovieTrailer item = (MovieTrailer) parent.getItemAtPosition(position);
+        if (item == null) {
+            return;
+        }
+        Uri videoUri = Uri.parse(getString(R.string.youtube_video_base_url))
+                .buildUpon()
+                .appendQueryParameter("v", item.getSource())
+                .build();
+        Intent trailerIntent = new Intent(Intent.ACTION_VIEW, videoUri);
+        startActivity(trailerIntent);
     }
 
     private void updateDetailsList() {
@@ -173,13 +181,25 @@ public class MovieDetailFragment extends Fragment {
         reloadData();
     }
 
-    public static class HeaderViewHolder{
-        public final TextView titleTextView;
-        public final ImageView poster;
-        public final TextView plotTextView;
-        public final TextView releaseDateTextView;
-        public final RatingBar voteAverageRatingBar;
-        public final ImageButton favoriteButton;
+    public static class HeaderViewHolder {
+
+        @BindView(R.id.movie_detail_title)
+        TextView titleTextView;
+
+        @BindView(R.id.movie_detail_poster)
+        ImageView poster;
+
+        @BindView(R.id.movie_detail_plot)
+        TextView plotTextView;
+
+        @BindView(R.id.movie_detail_release_date)
+        TextView releaseDateTextView;
+
+        @BindView(R.id.movie_detail_vote_average)
+        RatingBar voteAverageRatingBar;
+
+        @BindView(R.id.favorite_button)
+        ImageButton favoriteButton;
 
         public String title;
         public String posterUrl;
@@ -215,12 +235,7 @@ public class MovieDetailFragment extends Fragment {
         }
 
         public HeaderViewHolder(View view){
-            titleTextView = (TextView) view.findViewById(R.id.movie_detail_title);
-            poster = (ImageView) view.findViewById(R.id.movie_detail_poster);
-            plotTextView = (TextView) view.findViewById(R.id.movie_detail_plot);
-            releaseDateTextView = (TextView) view.findViewById(R.id.movie_detail_release_date);
-            voteAverageRatingBar = (RatingBar) view.findViewById(R.id.movie_detail_vote_average);
-            favoriteButton = (ImageButton) view.findViewById(R.id.favorite_button);
+            ButterKnife.bind(this, view);
         }
     }
 

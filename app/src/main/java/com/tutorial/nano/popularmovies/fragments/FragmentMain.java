@@ -32,11 +32,20 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class FragmentMain extends Fragment {
+
     private MoviesAdapter mMoviesAdapter;
     private String mSortPreference;
     public List<Movie> mMovies;
-    private ProgressBar mProgressBar;
+
+    @BindView(R.id.progress_bar)
+    ProgressBar mProgressBar;
+
+    @BindView(R.id.movies_grid)
+    GridView mMoviesGrid;
 
     @Inject protected Application mApplication;
     @Inject protected SharedPreferences mSharedPreferences;
@@ -49,19 +58,19 @@ public class FragmentMain extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((PopularMoviesApp) getActivity().getApplication()).getAppComponent().inject(this);
-        setHasOptionsMenu(true);
         mMovies = new ArrayList<>();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        mProgressBar = (ProgressBar) rootView.findViewById(R.id.progress_bar);
+        ButterKnife.bind(this, rootView);
+
         mMoviesAdapter = new MoviesAdapter(getContext(), R.id.movies_grid, mMovies);
-        GridView moviesGrid = (GridView) rootView.findViewById(R.id.movies_grid);
-        moviesGrid.setAdapter(mMoviesAdapter);
-        moviesGrid.setEmptyView(rootView.findViewById(R.id.no_movies_message));
-        moviesGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+        mMoviesGrid.setAdapter(mMoviesAdapter);
+        mMoviesGrid.setEmptyView(rootView.findViewById(R.id.no_movies_message));
+        mMoviesGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

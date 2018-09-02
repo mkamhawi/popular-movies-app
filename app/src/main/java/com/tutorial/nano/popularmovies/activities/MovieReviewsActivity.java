@@ -9,6 +9,7 @@ import com.tutorial.nano.popularmovies.fragments.MovieReviewsFragment;
 import com.tutorial.nano.popularmovies.interfaces.MasterActivityCallback;
 
 public class MovieReviewsActivity extends AppCompatActivity implements MasterActivityCallback {
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
