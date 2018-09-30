@@ -17,7 +17,7 @@ public class SingleReviewActivity extends AppCompatActivity {
         if(savedInstanceState == null) {
             Intent intent = getIntent();
             Bundle arguments = new Bundle();
-            arguments.putLong("entryId", intent.getExtras().getLong("entryId"));
+            arguments.putSerializable("review", intent.getExtras().getSerializable("review"));
 
             SingleReviewFragment detailFragment = new SingleReviewFragment();
             detailFragment.setArguments(arguments);

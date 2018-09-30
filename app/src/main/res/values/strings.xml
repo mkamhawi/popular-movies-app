@@ -24,4 +24,6 @@
     <string name="now_playing_label">Now playing</string>
     <string name="top_rated_label">Top rated</string>
     <string name="upcoming_label">Upcoming</string>
+    <string name="trailers">Trailers</string>
+    <string name="reviews">Reviews</string>
 </resources>

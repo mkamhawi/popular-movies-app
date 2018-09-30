@@ -19,7 +19,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.MovieDetailActivity" />
-        <activity android:name=".activities.MovieReviewsActivity" />
         <activity android:name=".activities.SingleReviewActivity" />
     </application>
 

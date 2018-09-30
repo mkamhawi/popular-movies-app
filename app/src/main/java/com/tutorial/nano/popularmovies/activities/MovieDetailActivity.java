@@ -8,7 +8,7 @@ import com.tutorial.nano.popularmovies.R;
 import com.tutorial.nano.popularmovies.fragments.MovieDetailFragment;
 import com.tutorial.nano.popularmovies.interfaces.MasterActivityCallback;
 
-public class MovieDetailActivity extends AppCompatActivity implements MasterActivityCallback {
+public class MovieDetailActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,7 +18,6 @@ public class MovieDetailActivity extends AppCompatActivity implements MasterActi
         if(savedInstanceState == null) {
             Intent intent = getIntent();
             Bundle arguments = new Bundle();
-            arguments.putLong("entryId", intent.getExtras().getLong("entryId"));
             arguments.putLong("movieId", intent.getExtras().getLong("movieId"));
 
             MovieDetailFragment detailFragment = new MovieDetailFragment();
@@ -28,12 +27,5 @@ public class MovieDetailActivity extends AppCompatActivity implements MasterActi
                     .add(R.id.movie_details_container, detailFragment)
                     .commit();
         }
-    }
-
-    @Override
-    public void onItemSelected(long entryId, long apiId, String sourceFragmentName) {
-        Intent reviews = new Intent(this, MovieReviewsActivity.class)
-                .putExtra("movieId", apiId);
-        startActivity(reviews);
     }
 }

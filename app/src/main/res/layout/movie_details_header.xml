@@ -44,6 +44,7 @@ android:orientation="vertical" >
                 android:textSize="@dimen/subtitle_text_size" />
 
             <RatingBar
+                android:id="@+id/movie_detail_vote_average"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/small_margin"
@@ -51,8 +52,7 @@ android:orientation="vertical" >
                 android:layout_gravity="center"
                 style="?android:attr/ratingBarStyleSmall"
                 android:numStars="5"
-                android:stepSize="0.1"
-                android:id="@+id/movie_detail_vote_average" />
+                android:stepSize="0.1" />
 
             <ImageButton
                 android:layout_width="@dimen/favorite_button_width"

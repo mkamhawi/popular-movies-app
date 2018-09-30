@@ -1,6 +1,7 @@
 package com.tutorial.nano.popularmovies.network;
 
 import android.app.Application;
+import android.util.Log;
 
 import com.birbit.android.jobqueue.JobManager;
 import com.tutorial.nano.popularmovies.R;
@@ -11,16 +12,19 @@ import com.tutorial.nano.popularmovies.data.dtos.MovieCollectionDto;
 import com.tutorial.nano.popularmovies.data.dtos.MovieDetailsDto;
 import com.tutorial.nano.popularmovies.network.api.ApiMethods;
 import com.tutorial.nano.popularmovies.network.events.IEvent;
-import com.tutorial.nano.popularmovies.network.jobs.GetMovieDetailsJob;
 import com.tutorial.nano.popularmovies.network.jobs.GetMoviesJob;
 import com.tutorial.nano.popularmovies.network.jobs.SaveMovieDetailsJob;
 import com.tutorial.nano.popularmovies.network.jobs.SaveMoviesJob;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.function.Consumer;
+
 import javax.inject.Inject;
 
 import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class NetworkJobManager {
     private static final String TAG = NetworkJobManager.class.getName();
@@ -76,9 +80,24 @@ public class NetworkJobManager {
         ));
     }
 
-    public void requestMovieDetails(String movieId) {
-        Call<MovieDetailsDto> call = mApiMethods.getMovieDetails(movieId, "trailers,reviews");
-        mJobManager.addJobInBackground(new GetMovieDetailsJob(this, call));
+    public void requestMovieDetails(String movieId, Consumer<MovieDetailsDto> consumer) {
+        mApiMethods.getMovieDetails(movieId, "trailers,reviews")
+                .enqueue(new Callback<MovieDetailsDto>() {
+                    @Override
+                    public void onResponse(Call<MovieDetailsDto> call, Response<MovieDetailsDto> response) {
+                        if (response.isSuccessful()) {
+                            saveMoviesDetails(response.body());
+                            consumer.accept(response.body());
+                        } else {
+                            Log.d(TAG, response.errorBody().toString());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<MovieDetailsDto> call, Throwable t) {
+                        Log.d(TAG, t.getMessage());
+                    }
+                });
     }
 
     public void saveMoviesDetails(MovieDetailsDto movieDetails) {
